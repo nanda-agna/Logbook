@@ -1,0 +1,1743 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Logbook Nanda</title>
+<meta name="theme-color" content="#15202B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Logbook">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-512.png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: a plant log sheet — section rail on the left (bottom bar on phones), ruled panels in the main column, tag-style IDs and readings in mono. */
+:root{
+  --bg:#ECEFF3; --surface:#FFFFFF; --surface-2:#F4F6F9; --ink:#15202B; --muted:#586676; --faint:#8592A1;
+  --line:#D5DCE4; --line-strong:#B6C1CD;
+  --accent:#1650B5; --accent-ink:#FFFFFF; --accent-soft:#E1E9F7;
+  --signal:#E09A12; --signal-soft:#FBF0D5;
+  --ok:#1D7F50; --ok-soft:#DCF0E5; --warn:#A35F00; --warn-soft:#F8EAD3; --crit:#BC3426; --crit-soft:#F8E0DC;
+  --scrim:rgba(15,22,30,.42);
+  --shadow:0 1px 2px rgba(20,32,43,.06),0 8px 28px rgba(20,32,43,.10);
+  --f-display:"Barlow Condensed","Arial Narrow","Roboto Condensed",sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1319; --surface:#141C24; --surface-2:#18222C; --ink:#E3E9EF; --muted:#98A6B5; --faint:#6C7A89;
+    --line:#25313D; --line-strong:#384655;
+    --accent:#7BA7F3; --accent-ink:#0A1420; --accent-soft:#182A43;
+    --signal:#F1B43B; --signal-soft:#33280F;
+    --ok:#4FC28C; --ok-soft:#11291D; --warn:#E6A33F; --warn-soft:#2E2210; --crit:#F06C5C; --crit-soft:#361814;
+    --scrim:rgba(0,0,0,.6);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1319; --surface:#141C24; --surface-2:#18222C; --ink:#E3E9EF; --muted:#98A6B5; --faint:#6C7A89;
+  --line:#25313D; --line-strong:#384655;
+  --accent:#7BA7F3; --accent-ink:#0A1420; --accent-soft:#182A43;
+  --signal:#F1B43B; --signal-soft:#33280F;
+  --ok:#4FC28C; --ok-soft:#11291D; --warn:#E6A33F; --warn-soft:#2E2210; --crit:#F06C5C; --crit-soft:#361814;
+  --scrim:rgba(0,0,0,.6);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body.locked{overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{margin:0;text-wrap:balance}
+
+/* ---------- shell ---------- */
+.app{display:grid;grid-template-columns:224px minmax(0,1fr);min-height:100%}
+.rail{position:sticky;top:0;align-self:start;height:100vh;display:flex;flex-direction:column;gap:20px;
+  padding-block:22px 18px;padding-inline:14px;border-right:1px solid var(--line);background:var(--surface)}
+.brand{display:flex;align-items:center;gap:10px;padding-inline:6px}
+.brand-mark{width:34px;height:34px;border-radius:5px;background:var(--ink);color:var(--bg);display:grid;place-items:center;
+  font-family:var(--f-display);font-weight:700;font-size:17px;letter-spacing:.02em}
+.brand-name{font-family:var(--f-display);font-weight:700;font-size:21px;letter-spacing:.03em;text-transform:uppercase;line-height:1}
+.brand-sub{font-size:10.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
+.navlist{display:flex;flex-direction:column;gap:2px}
+.nav{display:flex;align-items:center;gap:11px;padding:9px 10px;border:0;border-radius:5px;background:transparent;color:var(--muted);
+  font-weight:600;font-size:15px;text-align:left;position:relative}
+.nav svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.nav:hover{background:var(--surface-2);color:var(--ink)}
+.nav[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.nav .lbl{flex:1}
+.badge{font-family:var(--f-mono);font-style:normal;font-size:11px;min-width:20px;padding:1px 6px;border-radius:999px;text-align:center;
+  background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.badge:empty{display:none}
+.badge.hot{background:var(--crit-soft);color:var(--crit);border-color:transparent}
+.rail-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-inline:6px}
+.store{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none}
+.dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.crit{background:var(--crit)}
+
+.main{padding-block:26px 56px;padding-inline:32px;max-width:1240px;width:100%;min-width:0}
+.mtop{display:none}
+
+/* ---------- view header ---------- */
+.vh{display:flex;align-items:flex-end;justify-content:space-between;gap:14px 20px;flex-wrap:wrap;
+  border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:20px}
+.vh > div:first-child{min-width:0}
+.eyebrow{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+h1{font-family:var(--f-display);font-weight:600;font-size:clamp(28px,4.2vw,38px);line-height:1.02;letter-spacing:.005em}
+h2{font-family:var(--f-display);font-weight:600;font-size:17px;letter-spacing:.06em;text-transform:uppercase}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);min-width:0}
+.panel-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.panel-h .aside{font-size:12.5px;color:var(--muted)}
+.cols{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px;align-items:start}
+.cols.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.col{display:flex;flex-direction:column;gap:18px;min-width:0}
+.stack{display:flex;flex-direction:column;gap:18px}
+
+/* ---------- controls ---------- */
+.in{padding:8px 10px;border:1px solid var(--line-strong);border-radius:5px;background:var(--surface);color:var(--ink);min-width:0;width:100%}
+textarea.in{resize:vertical;line-height:1.5}
+select.in{padding-right:28px}
+.in::placeholder{color:var(--faint)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:5px;border:1px solid var(--line-strong);
+  background:var(--surface);color:var(--ink);font-weight:600;font-size:14.5px;white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--ink);border-color:var(--line)}
+.btn.danger{color:var(--crit);border-color:var(--crit);background:transparent}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font-weight:600;font-size:13.5px}
+.linkbtn:hover{text-decoration:underline}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field > span{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;border:1px solid var(--line-strong);
+  background:var(--surface);font-size:13.5px;font-weight:600;color:var(--muted)}
+.chip .n{font-family:var(--f-mono);font-size:11.5px;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip.crit .n{color:var(--crit)}
+.chip.crit[aria-pressed="true"] .n{color:inherit}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-block:14px 12px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tools .in{width:auto;min-width:150px}
+.check{display:inline-flex;align-items:center;gap:7px;font-size:14px;color:var(--muted)}
+.check input{width:16px;height:16px;accent-color:var(--accent)}
+.hint{font-size:13px;color:var(--muted);margin:10px 2px 0}
+
+/* quick add */
+.qa{display:grid;grid-template-columns:minmax(0,1fr) 190px 140px 150px auto;gap:8px;padding:10px}
+.qa-mini{display:flex;gap:8px;flex:1 1 320px;max-width:520px}
+.qa-mini .in{flex:1}
+
+/* ---------- stats strip ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:18px}
+.stat{background:var(--surface);padding:12px 16px 14px;min-width:0}
+.stat .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:var(--f-display);font-weight:600;font-size:44px;line-height:1.05;font-variant-numeric:tabular-nums;margin-top:2px}
+.stat .v small{font-size:20px;font-weight:500;color:var(--muted);margin-left:3px}
+.stat .s{font-size:12.5px;color:var(--muted)}
+.stat.crit .v{color:var(--crit)}
+.stat.warn .v{color:var(--warn)}
+
+/* ---------- task rows ---------- */
+.grp{display:flex;justify-content:space-between;gap:8px;padding:7px 14px;background:var(--surface-2);border-bottom:1px solid var(--line);
+  font-family:var(--f-mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.grp.crit{color:var(--crit)}
+.grp:first-child{border-top-left-radius:var(--r);border-top-right-radius:var(--r)}
+.trow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 14px 10px 16px;
+  border-bottom:1px solid var(--line);position:relative}
+.trow:last-child{border-bottom:0}
+.trow::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:0 2px 2px 0;background:var(--pc)}
+.trow.p1{--pc:var(--crit)} .trow.p2{--pc:var(--warn)} .trow.p3{--pc:var(--line-strong)}
+.trow.is-done{--pc:transparent}
+.tick{width:22px;height:22px;margin-top:1px;border-radius:5px;border:1.5px solid var(--line-strong);background:var(--surface);display:grid;place-items:center;padding:0}
+.tick svg{width:14px;height:14px;fill:none;stroke:transparent;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.tick:hover{border-color:var(--ok)}
+.tick:hover svg{stroke:var(--ok)}
+.is-done .tick{background:var(--ok);border-color:var(--ok)}
+.is-done .tick svg{stroke:var(--surface)}
+.tmain{display:flex;flex-direction:column;gap:4px;min-width:0;text-align:left;background:none;border:0;padding:0}
+.ttitle{display:block;font-weight:500;font-size:15px;line-height:1.35;overflow-wrap:anywhere}
+.is-done .ttitle{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--faint)}
+.tmeta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:12.5px;color:var(--muted)}
+.tid{font-size:11.5px;color:var(--faint)}
+.pchip{font-size:11px;padding:0 6px;border:1px solid var(--line-strong);border-radius:3px;color:var(--ink);line-height:18px}
+.due{font-weight:600}
+.due.crit{color:var(--crit)} .due.warn{color:var(--warn)}
+.pill{font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;line-height:16px}
+.pill.doing{background:var(--accent-soft);color:var(--accent)}
+.pill.seed{background:var(--signal-soft);color:var(--warn)}
+.pri{font-size:11px;color:var(--muted);padding-top:3px}
+.p1 .pri{color:var(--crit);font-weight:600}
+.empty{padding:22px 16px;color:var(--muted);font-size:14px}
+.empty b{color:var(--ink);font-weight:600}
+.upnext{border-top:1px dashed var(--line)}
+
+/* ---------- habits ---------- */
+.hlist{display:flex;flex-direction:column}
+.hrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line)}
+.hrow:last-child{border-bottom:0}
+.hname{font-size:14.5px;overflow-wrap:anywhere}
+.streak{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.streak.on{color:var(--ok)}
+.hcell{width:28px;height:28px;border-radius:5px;border:1.5px solid var(--line-strong);background:var(--surface);display:grid;place-items:center;padding:0}
+.hcell svg{width:15px;height:15px;fill:none;stroke:transparent;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.hcell:hover{border-color:var(--ok)}
+.hcell.on{background:var(--ok);border-color:var(--ok)}
+.hcell.on svg{stroke:var(--surface)}
+.tablewrap{overflow-x:auto}
+.htable{border-collapse:collapse;width:100%;min-width:560px}
+.htable th,.htable td{padding:6px 4px;text-align:center;border-bottom:1px solid var(--line)}
+.htable tr:last-child td{border-bottom:0}
+.htable th{font-family:var(--f-mono);font-weight:500;font-size:10.5px;color:var(--muted);letter-spacing:.04em;line-height:1.25;vertical-align:bottom;padding-top:10px}
+.htable th.today,.htable td.today{background:var(--signal-soft)}
+.htable th.today{color:var(--warn);font-weight:600}
+.htable .hn{text-align:left;padding-left:14px;min-width:150px;max-width:240px}
+.htable .hn button{background:none;border:0;padding:0;text-align:left;font-weight:500;font-size:14.5px;overflow-wrap:anywhere}
+.htable .hn button:hover{color:var(--accent)}
+.htable .num{font-family:var(--f-mono);font-size:12.5px;padding-inline:10px;white-space:nowrap}
+.htable td.num.on{color:var(--ok);font-weight:600}
+.htable th.wk{border-left:1px solid var(--line)}
+.htable td.wk{border-left:1px solid var(--line)}
+
+/* ---------- projects ---------- */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.pcard{display:flex;flex-direction:column;gap:10px;padding:14px 16px 12px}
+.pcard-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pcode{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.04em;color:var(--muted)}
+.pstat{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.pstat.aktif{color:var(--accent)} .pstat.menunggu{color:var(--warn)} .pstat.ditunda{color:var(--muted)} .pstat.selesai{color:var(--ok)}
+.pname{font-family:var(--f-display);font-weight:600;font-size:22px;line-height:1.1;overflow-wrap:anywhere}
+.pmeta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--muted)}
+.pmeta .crit{color:var(--crit);font-weight:600} .pmeta .warn{color:var(--warn);font-weight:600}
+.pnotes{font-size:13.5px;color:var(--muted);overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.bar{height:6px;border-radius:3px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.bar > i{display:block;height:100%;background:var(--accent);border-radius:2px}
+.bar.full > i{background:var(--ok)}
+.prog{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-top:-4px}
+.pnext{font-size:13.5px;border-top:1px dashed var(--line);padding-top:9px;min-width:0}
+.pnext .k{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:block;margin-bottom:2px}
+.pacts{display:flex;gap:6px;justify-content:flex-end;margin-top:auto}
+.plist{display:flex;flex-direction:column}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:10px 14px;border-bottom:1px solid var(--line);align-items:center}
+.prow:last-child{border-bottom:0}
+.prow .nm{font-weight:600;font-size:14.5px;overflow-wrap:anywhere;background:none;border:0;padding:0;text-align:left}
+.prow .nm:hover{color:var(--accent)}
+.prow .cd{font-family:var(--f-mono);font-size:12px;text-align:right;white-space:nowrap}
+.prow .cd.crit{color:var(--crit)} .prow .cd.warn{color:var(--warn)}
+.prow .bar{grid-column:1 / -1}
+
+/* ---------- focus ---------- */
+.timer{padding:16px 18px 18px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:7px 14px;font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.seg button + button{border-left:1px solid var(--line-strong)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.dial{position:relative;width:min(300px,78vw);aspect-ratio:1;max-width:100%}
+.dial svg{width:100%;height:100%;display:block}
+.ring-track{fill:none;stroke:var(--surface-2);stroke-width:12}
+.ring-fill{fill:none;stroke:var(--accent);stroke-width:12;stroke-linecap:butt;transition:stroke-dashoffset .5s linear}
+.dial.rest .ring-fill{stroke:var(--ok)}
+.tk{stroke:var(--line-strong);stroke-width:1.2}
+.tk.maj{stroke:var(--muted);stroke-width:2}
+.dial-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center}
+.phase{font-size:11.5px;letter-spacing:.14em;color:var(--accent);font-weight:600}
+.dial.rest .phase{color:var(--ok)}
+.clock{font-size:clamp(44px,11vw,60px);font-weight:500;letter-spacing:-.02em;line-height:1}
+.tsub{font-size:13px;color:var(--muted);max-width:180px;overflow-wrap:anywhere}
+.timer .field{width:100%;max-width:420px}
+.t-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.btn.big{padding:10px 26px;font-size:16px;min-width:130px}
+.sess{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);font-size:14px}
+.sess:last-child{border-bottom:0}
+.sess .at{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.sess .lb{overflow-wrap:anywhere}
+.sess .mn{font-family:var(--f-mono);font-size:13px;font-weight:600}
+.xbtn{background:none;border:0;color:var(--faint);padding:2px 4px;font-size:15px;line-height:1}
+.xbtn:hover{color:var(--crit)}
+.manual{display:grid;grid-template-columns:90px minmax(0,1fr) auto;gap:8px;padding:10px 14px;border-top:1px solid var(--line);background:var(--surface-2)}
+
+/* ---------- charts ---------- */
+.chartbox{padding:8px 10px 6px}
+.chart{width:100%;height:auto;display:block}
+.chart .gl{stroke:var(--line);stroke-width:1}
+.chart .gl.base{stroke:var(--line-strong)}
+.chart .ax{fill:var(--muted);font-family:var(--f-mono);font-size:10.5px}
+.chart .ax.now{fill:var(--warn);font-weight:600}
+.chart .b{fill:var(--accent);opacity:.82}
+.chart .b.now{fill:var(--signal);opacity:1}
+.chart .vl{fill:var(--ink);font-family:var(--f-mono);font-size:11px;font-weight:600}
+.chart-sum{display:flex;gap:16px;padding:2px 14px 12px;font-size:12.5px;color:var(--muted)}
+.chart-sum b{color:var(--ink);font-family:var(--f-mono);font-weight:600}
+
+/* ---------- review ---------- */
+.datenav{display:flex;align-items:center;gap:6px}
+.datenav .in{width:auto;padding:5px 8px;font-size:13.5px}
+.datenav .nb{border:1px solid var(--line-strong);background:var(--surface);border-radius:5px;width:30px;height:30px;font-size:16px;line-height:1;padding:0}
+.datenav .wk{font-family:var(--f-mono);font-size:12.5px;min-width:150px;text-align:center}
+.jbody,.rbody{display:flex;flex-direction:column;gap:12px;padding:14px}
+.jfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px}
+#r-text{font-family:var(--f-mono);font-size:12.5px;line-height:1.55;min-height:340px;background:var(--surface-2)}
+.datap{padding:14px;display:flex;flex-direction:column;gap:12px;font-size:14px}
+.datap p{margin:0;color:var(--muted)}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px;font-weight:600}
+
+/* ---------- sheet ---------- */
+.sheet-bd{position:fixed;inset:0;background:var(--scrim);z-index:40;display:flex;justify-content:flex-end}
+.sheet{width:min(460px,100%);height:100%;background:var(--surface);box-shadow:var(--shadow);overflow-y:auto;
+  padding-block:calc(18px + env(safe-area-inset-top,0px)) calc(18px + env(safe-area-inset-bottom,0px));padding-inline:20px}
+.sform{display:flex;flex-direction:column;gap:14px}
+.sh{display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:10px}
+.sh h2{flex:1;font-size:20px}
+.sh .x{background:none;border:0;font-size:20px;color:var(--muted);padding:2px 6px;line-height:1}
+.qd{display:flex;flex-wrap:wrap;gap:6px;margin-top:-4px}
+.qd button{font-size:12.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line-strong);background:var(--surface);color:var(--muted)}
+.qd button:hover{color:var(--ink);border-color:var(--ink)}
+.smeta{font-family:var(--f-mono);font-size:11.5px;color:var(--faint)}
+.sfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:14px;margin-top:4px}
+.sfoot .r{display:flex;gap:8px}
+.seg-pri{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line-strong);border-radius:5px;overflow:hidden}
+.seg-pri label{display:block;text-align:center;padding:7px 4px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;border-left:1px solid var(--line-strong)}
+.seg-pri label:first-child{border-left:0}
+.seg-pri input{position:absolute;opacity:0;pointer-events:none}
+.seg-pri label:has(input:checked){background:var(--ink);color:var(--bg)}
+.seg-pri label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:-2px}
+
+/* ---------- toast / banner ---------- */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:60;
+  background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:6px;font-size:14px;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
+.banner{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-radius:var(--r);border:1px solid var(--warn);background:var(--warn-soft);color:var(--ink);font-size:14px;margin-bottom:16px}
+.banner .dot{margin-top:6px}
+
+/* ---------- responsive ---------- */
+@media (max-width:1080px){
+  .cols,.cols.even{grid-template-columns:minmax(0,1fr)}
+  .qa{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)}
+  .qa .qa-title{grid-column:1 / -1}
+  .qa button{grid-column:3}
+}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .rail{position:fixed;top:auto;bottom:0;left:0;right:0;height:auto;z-index:30;flex-direction:row;gap:0;
+    padding-block:4px calc(4px + env(safe-area-inset-bottom,0px));padding-inline:4px;border-right:0;border-top:1px solid var(--line)}
+  .brand,.rail-foot{display:none}
+  .navlist{flex-direction:row;flex:1;gap:0}
+  .nav{flex:1;flex-direction:column;gap:2px;padding:6px 2px;font-size:10.5px;letter-spacing:.01em;text-align:center;min-width:0}
+  .nav .lbl{flex:none;white-space:nowrap}
+  .nav .badge{position:absolute;top:2px;left:calc(50% + 6px);font-size:9.5px;min-width:16px;padding:0 4px}
+  .main{padding-block:14px calc(96px + env(safe-area-inset-bottom,0px));padding-inline:16px}
+  .mtop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .mtop .brand{display:flex;padding:0}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+}
+@media (max-width:640px){
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stat .v{font-size:36px}
+  .qa{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .qa button{grid-column:auto}
+  .qa-mini{flex-basis:100%;max-width:none}
+  .frow{grid-template-columns:minmax(0,1fr)}
+  .tools{width:100%}
+  .tools .in{flex:1;min-width:0}
+  .pgrid{grid-template-columns:minmax(0,1fr)}
+  .htable{min-width:0}
+  .htable .old{display:none}
+  .htable .hn{min-width:104px;padding-left:12px}
+  .htable .rate{display:none}
+  .htable th,.htable td{padding-inline:2px}
+  .htable .num{padding-inline:6px}
+  .htable .hcell{width:26px;height:26px}
+  .manual{grid-template-columns:76px minmax(0,1fr)}
+  .manual button{grid-column:1 / -1}
+  .datenav .wk{min-width:0}
+}
+@media (prefers-reduced-motion: reduce){
+  *{transition:none!important;animation:none!important}
+}
+.ghbox{display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:14px}
+.ghbox h3{font-family:var(--f-display);font-weight:600;font-size:16px;letter-spacing:.05em;text-transform:uppercase}
+.ghmsg{font-size:13.5px;color:var(--muted);margin:0}
+.ghmsg.crit{color:var(--crit)}
+.ghmsg.ok{color:var(--ok)}
+.filebtn{position:relative;overflow:hidden}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.banner .btn{margin-left:auto;flex:none}
+.banner.crit{border-color:var(--crit);background:var(--crit-soft)}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="rail" id="nav" aria-label="Bagian">
+    <div class="brand"><span class="brand-mark">LB</span><div><div class="brand-name">Logbook</div><div class="brand-sub">Nanda · Unit Boiler</div></div></div>
+    <div class="navlist">
+      <button class="nav" data-go="today"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="12" cy="14.6" r="2"/></svg><span class="lbl">Hari Ini</span><em class="badge" id="nb-today"></em></button>
+      <button class="nav" data-go="tasks"><svg viewBox="0 0 24 24"><path d="M4 6.5l2 2 3.5-4M4 15.5l2 2 3.5-4M13 7h7.5M13 16h7.5"/></svg><span class="lbl">Tugas</span><em class="badge" id="nb-tasks"></em></button>
+      <button class="nav" data-go="projects"><svg viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg><span class="lbl">Proyek</span></button>
+      <button class="nav" data-go="habits"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2"/><path d="M14 17l2 2 3.8-4.2"/></svg><span class="lbl">Kebiasaan</span></button>
+      <button class="nav" data-go="focus"><svg viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M10 3h4M12 3v3"/></svg><span class="lbl">Fokus</span></button>
+      <button class="nav" data-go="review"><svg viewBox="0 0 24 24"><path d="M6 3.5h11a1.5 1.5 0 0 1 1.5 1.5v15.5H8a2 2 0 0 1-2-2z"/><path d="M6 18.5a2 2 0 0 1 2-2h10.5M9.5 8h6M9.5 11.5h4"/></svg><span class="lbl">Review</span></button>
+    </div>
+    <div class="rail-foot">
+      <div class="store"><span class="dot" id="st-dot"></span><span id="st-text">Menyambungkan…</span></div>
+    </div>
+  </nav>
+
+  <main class="main" id="main">
+    <div class="mtop">
+      <div class="brand"><span class="brand-mark">LB</span><div><div class="brand-name">Logbook</div><div class="brand-sub">Nanda · Unit Boiler</div></div></div>
+      <div class="store"><span class="dot" id="st-dot-m"></span><span id="st-text-m">Menyambungkan…</span></div>
+    </div>
+    <div id="banner"></div>
+
+    <!-- HARI INI -->
+    <section class="view" id="v-today" data-view="today">
+      <header class="vh">
+        <div><div class="eyebrow" id="today-eyebrow">&nbsp;</div><h1 id="today-title">Hari Ini</h1></div>
+        <form class="qa-mini" id="qa-today" autocomplete="off">
+          <input class="in" id="qt-title" placeholder="Tambah tugas untuk hari ini…" aria-label="Tugas baru untuk hari ini">
+          <button class="btn primary" type="submit">Tambah</button>
+        </form>
+      </header>
+      <div class="stats" id="today-stats"></div>
+      <div class="cols">
+        <div class="col">
+          <section class="panel">
+            <div class="panel-h"><h2>Agenda hari ini</h2><span class="aside mono" id="agenda-count"></span></div>
+            <div id="today-list"></div>
+          </section>
+        </div>
+        <div class="col">
+          <section class="panel">
+            <div class="panel-h"><h2>Kebiasaan</h2><button class="linkbtn" data-go="habits">Kelola</button></div>
+            <div id="today-habits" class="hlist"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-h"><h2>Tenggat proyek</h2><button class="linkbtn" data-go="projects">Semua proyek</button></div>
+            <div id="today-projects" class="plist"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-h"><h2>Tugas selesai · 14 hari</h2></div>
+            <div id="today-chart" class="chartbox"></div>
+            <div class="chart-sum" id="today-chart-sum"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- TUGAS -->
+    <section class="view" id="v-tasks" data-view="tasks" hidden>
+      <header class="vh"><div><div class="eyebrow" id="tasks-eyebrow">&nbsp;</div><h1>Tugas</h1></div></header>
+      <form class="panel qa" id="qa" autocomplete="off">
+        <input class="in qa-title" id="qa-title" placeholder="Apa yang perlu dikerjakan?" aria-label="Judul tugas">
+        <select class="in" id="qa-proj" aria-label="Proyek"></select>
+        <select class="in" id="qa-pri" aria-label="Prioritas"><option value="1">P1 · Penting</option><option value="2" selected>P2 · Normal</option><option value="3">P3 · Rendah</option></select>
+        <input class="in" type="date" id="qa-due" aria-label="Tenggat">
+        <button class="btn primary" type="submit">Tambah</button>
+      </form>
+      <div class="toolbar">
+        <div class="chips" id="task-filters" role="group" aria-label="Saring tugas"></div>
+        <div class="tools">
+          <select class="in" id="tf-proj" aria-label="Saring per proyek"></select>
+          <input class="in" id="tf-q" type="search" placeholder="Cari tugas…" aria-label="Cari tugas">
+        </div>
+      </div>
+      <section class="panel" id="task-list"></section>
+    </section>
+
+    <!-- PROYEK -->
+    <section class="view" id="v-projects" data-view="projects" hidden>
+      <header class="vh"><div><div class="eyebrow" id="proj-eyebrow">&nbsp;</div><h1>Proyek</h1></div><button class="btn primary" data-act="new-project" type="button">Proyek baru</button></header>
+      <div class="toolbar">
+        <div class="chips" id="proj-filters" role="group" aria-label="Saring area"></div>
+        <label class="check"><input type="checkbox" id="pf-done"> Tampilkan yang selesai</label>
+      </div>
+      <div class="pgrid" id="proj-grid"></div>
+    </section>
+
+    <!-- KEBIASAAN -->
+    <section class="view" id="v-habits" data-view="habits" hidden>
+      <header class="vh">
+        <div><div class="eyebrow" id="hab-eyebrow">&nbsp;</div><h1>Kebiasaan</h1></div>
+        <form class="qa-mini" id="hab-add" autocomplete="off">
+          <input class="in" id="hab-name" placeholder="Kebiasaan baru, mis. Cek tren KPI pagi" aria-label="Nama kebiasaan baru">
+          <button class="btn primary" type="submit">Tambah</button>
+        </form>
+      </header>
+      <section class="panel"><div class="tablewrap" id="hab-table"></div></section>
+      <p class="hint">Ketuk kotak untuk menandai hari itu. Streak dihitung dari hari ini (atau kemarin, kalau hari ini belum ditandai). Ketuk nama untuk mengubah atau menghapus.</p>
+    </section>
+
+    <!-- FOKUS -->
+    <section class="view" id="v-focus" data-view="focus" hidden>
+      <header class="vh"><div><div class="eyebrow" id="focus-eyebrow">&nbsp;</div><h1>Fokus</h1></div></header>
+      <div class="cols">
+        <div class="col">
+          <section class="panel timer">
+            <div class="seg" id="presets" role="group" aria-label="Durasi fokus dan istirahat">
+              <button type="button" data-preset="25">25 · 5</button><button type="button" data-preset="50">50 · 10</button><button type="button" data-preset="90">90 · 15</button>
+            </div>
+            <div class="dial" id="dial">
+              <svg viewBox="0 0 260 260" aria-hidden="true"><g id="ticks"></g><circle class="ring-track" cx="130" cy="130" r="104"/><circle class="ring-fill" id="ring" cx="130" cy="130" r="104" transform="rotate(-90 130 130)"/></svg>
+              <div class="dial-c"><div class="phase mono" id="t-phase">FOKUS</div><div class="clock mono" id="t-clock">25:00</div><div class="tsub" id="t-sub">Siap mulai</div></div>
+            </div>
+            <label class="field"><span>Sedang mengerjakan</span><select class="in" id="t-task"></select></label>
+            <div class="t-actions">
+              <button class="btn primary big" type="button" id="t-start">Mulai</button>
+              <button class="btn" type="button" id="t-finish">Selesai &amp; catat</button>
+              <button class="btn ghost" type="button" id="t-reset">Reset</button>
+            </div>
+          </section>
+        </div>
+        <div class="col">
+          <section class="panel">
+            <div class="panel-h"><h2>Sesi hari ini</h2><span class="aside mono" id="focus-total"></span></div>
+            <div id="focus-sessions"></div>
+            <form class="manual" id="focus-manual" autocomplete="off">
+              <input class="in" id="fm-min" type="number" min="1" max="720" inputmode="numeric" placeholder="Menit" aria-label="Menit">
+              <input class="in" id="fm-label" placeholder="Catat manual, mis. rapat FEED" aria-label="Keterangan sesi">
+              <button class="btn" type="submit">Catat</button>
+            </form>
+          </section>
+          <section class="panel">
+            <div class="panel-h"><h2>Menit fokus · 14 hari</h2></div>
+            <div id="focus-chart" class="chartbox"></div>
+            <div class="chart-sum" id="focus-chart-sum"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- REVIEW -->
+    <section class="view" id="v-review" data-view="review" hidden>
+      <header class="vh"><div><div class="eyebrow">Jurnal harian · laporan mingguan · data</div><h1>Review</h1></div></header>
+      <div class="cols even">
+        <div class="col">
+          <section class="panel">
+            <div class="panel-h"><h2>Jurnal harian</h2>
+              <div class="datenav"><button class="nb" type="button" data-jd="-1" aria-label="Hari sebelumnya">‹</button><input type="date" class="in" id="j-date" aria-label="Tanggal jurnal"><button class="nb" type="button" data-jd="1" aria-label="Hari berikutnya">›</button></div>
+            </div>
+            <div class="jbody">
+              <label class="field"><span>Capaian</span><textarea class="in" id="j-capaian" rows="4" placeholder="Apa yang selesai atau maju hari ini?"></textarea></label>
+              <label class="field"><span>Kendala</span><textarea class="in" id="j-kendala" rows="3" placeholder="Apa yang menghambat? Butuh bantuan siapa?"></textarea></label>
+              <label class="field"><span>Rencana besok</span><textarea class="in" id="j-rencana" rows="3" placeholder="3 hal terpenting untuk besok"></textarea></label>
+              <div class="jfoot"><span class="mono muted" id="j-status"></span><button class="btn sm" type="button" data-act="j-fill">Isi capaian dari tugas selesai</button></div>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-h"><h2>Data &amp; sinkron</h2></div>
+            <div class="datap"><div id="data-panel" class="stack" style="gap:12px"></div><div id="gh-box"></div></div>
+          </section>
+        </div>
+        <div class="col">
+          <section class="panel">
+            <div class="panel-h"><h2>Laporan mingguan</h2>
+              <div class="datenav"><button class="nb" type="button" data-rw="-1" aria-label="Minggu sebelumnya">‹</button><span class="wk" id="r-week"></span><button class="nb" type="button" data-rw="1" aria-label="Minggu berikutnya">›</button></div>
+            </div>
+            <div class="rbody">
+              <textarea class="in" id="r-text" readonly rows="20" aria-label="Teks laporan mingguan"></textarea>
+              <div class="jfoot"><span class="muted">Disusun dari tugas, jurnal, dan sesi fokus minggu ini.</span><button class="btn primary" type="button" data-act="r-copy">Salin teks</button></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="sheet-bd" id="sheet" hidden><div class="sheet" role="dialog" aria-modal="true" id="sheet-body"></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(() => {
+'use strict';
+/* ================= utilities ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const BLN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const BLN_L = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const HR = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+const HR_L = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const pad = n => String(n).padStart(2, '0');
+const pad3 = n => String(n || 0).padStart(3, '0');
+const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const parse = s => { const a = String(s).split('-').map(Number); return new Date(a[0], a[1] - 1, a[2]); };
+const TODAY = () => ymd(new Date());
+const addD = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); return ymd(d); };
+const dd = (a, b) => Math.round((parse(a) - parse(b)) / 864e5);
+const isDate = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const clean = o => JSON.parse(JSON.stringify(o));
+function fmtD(s, withYear) {
+  if (!isDate(s)) return '';
+  const d = parse(s), y = d.getFullYear();
+  return d.getDate() + ' ' + BLN[d.getMonth()] + ((withYear || y !== new Date().getFullYear()) ? ' ' + y : '');
+}
+function fmtLong(s) { const d = parse(s); return HR_L[d.getDay()] + ', ' + d.getDate() + ' ' + BLN_L[d.getMonth()] + ' ' + d.getFullYear(); }
+function fmtRange(a, b) {
+  const x = parse(a), y = parse(b);
+  if (x.getMonth() === y.getMonth()) return x.getDate() + '–' + y.getDate() + ' ' + BLN[y.getMonth()] + ' ' + y.getFullYear();
+  return x.getDate() + ' ' + BLN[x.getMonth()] + ' – ' + y.getDate() + ' ' + BLN[y.getMonth()] + ' ' + y.getFullYear();
+}
+function fmtMin(m) { m = Math.round(m || 0); if (m < 60) return m + ' mnt'; const h = Math.floor(m / 60), r = m % 60; return h + ' j' + (r ? ' ' + r + ' mnt' : ''); }
+function isoWeek(s) {
+  const d = parse(s); const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil(((t - y0) / 864e5 + 1) / 7);
+}
+const weekStart = s => { const d = parse(s); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return ymd(d); };
+const dayOfYear = s => { const d = parse(s); return Math.round((d - new Date(d.getFullYear(), 0, 1)) / 864e5) + 1; };
+function shiftLabel() {
+  const h = new Date().getHours();
+  if (h >= 7 && h < 15) return 'Shift pagi 07–15';
+  if (h >= 15 && h < 23) return 'Shift sore 15–23';
+  return 'Shift malam 23–07';
+}
+function dueLabel(s) {
+  const n = dd(s, TODAY());
+  if (n < 0) return 'Terlambat ' + (-n) + ' hari';
+  if (n === 0) return 'Hari ini';
+  if (n === 1) return 'Besok';
+  if (n < 7) return HR[parse(s).getDay()] + ', ' + fmtD(s);
+  return fmtD(s);
+}
+function countdown(s) {
+  const n = dd(s, TODAY());
+  if (n === 0) return { t: 'hari ini', c: 'warn' };
+  if (n < 0) return { t: 'lewat ' + (-n) + ' hari', c: 'crit' };
+  return { t: n + ' hari lagi', c: n <= 14 ? 'warn' : '' };
+}
+const LS = {
+  get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const CHECK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>';
+
+/* ================= state & store ================= */
+const COLS = ['tasks', 'projects', 'habits', 'focus', 'journal'];
+const S = { tasks: {}, projects: {}, habits: {}, focus: {}, journal: {} };
+const loaded = { tasks: false, projects: false, habits: false, focus: false, journal: false };
+const store = { mode: 'loading', db: null, readOnly: false, downloads: null };
+const LSKEY = 'logbook-local-v1';
+const HASH = { today: 'hari-ini', tasks: 'tugas', projects: 'proyek', habits: 'kebiasaan', focus: 'fokus', review: 'review' };
+const ui = {
+  view: 'today', taskFilter: 'aktif', taskProject: '', taskQuery: '',
+  projArea: 'Semua', projShowDone: false,
+  journalDate: TODAY(), reportWeek: weekStart(TODAY()), seedConfirm: false
+};
+
+const chains = {};
+function enqueue(path, fn) {
+  const run = async () => {
+    try { return await fn(); }
+    catch (e) {
+      if (e && e.code === 'unavailable') { await new Promise(r => setTimeout(r, 400 + Math.random() * 600)); return await fn(); }
+      throw e;
+    }
+  };
+  const p = (chains[path] || Promise.resolve()).catch(() => {}).then(run);
+  chains[path] = p;
+  return p;
+}
+function canWrite() {
+  if (store.mode === 'loading') { toast('Penyimpanan masih disiapkan. Coba lagi sebentar.'); return false; }
+  if (store.readOnly) { toast('Logbook ini hanya bisa diubah pemiliknya.'); return false; }
+  return true;
+}
+const TOMB = { tasks: {}, projects: {}, habits: {}, focus: {}, journal: {} };
+const IN_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
+async function put(col, id, body) {
+  if (!canWrite()) return false;
+  body = clean(body);
+  if (store.mode !== 'db') body._u = Date.now();
+  S[col] = Object.assign({}, S[col], { [id]: body });
+  if (TOMB[col] && TOMB[col][id]) delete TOMB[col][id];
+  schedule();
+  if (store.mode === 'db') {
+    try { await enqueue(col + '/' + id, () => store.db.collection(col).doc(id).set(body)); return true; }
+    catch (e) { dbErr(e); return false; }
+  }
+  saveLocal(); if (store.mode === 'github') schedulePush(); return true;
+}
+async function remove(col, id) {
+  if (!canWrite()) return false;
+  const next = Object.assign({}, S[col]); delete next[id]; S[col] = next;
+  if (store.mode !== 'db') TOMB[col][id] = Date.now();
+  schedule();
+  if (store.mode === 'db') {
+    try { await enqueue(col + '/' + id, () => store.db.collection(col).doc(id).delete()); return true; }
+    catch (e) { dbErr(e); return false; }
+  }
+  saveLocal(); if (store.mode === 'github') schedulePush(); return true;
+}
+function dbErr(e) {
+  const c = e && e.code;
+  if (c === 'invalid_argument') { store.readOnly = true; setStatus(); toast('Perubahan ditolak: akun ini tidak punya izin menulis.'); }
+  else if (c === 'quota_exceeded') toast('Penyimpanan penuh. Hapus tugas selesai atau sesi lama, lalu coba lagi.');
+  else if (c === 'resource_exhausted') toast('Terlalu banyak perubahan sekaligus. Tunggu beberapa detik lalu ulangi.');
+  else if (c === 'revoked') { store.readOnly = true; setStatus(); }
+  else toast('Gagal menyimpan. Periksa koneksi lalu ulangi.');
+}
+function saveLocal() { LS.set(LSKEY, Object.assign({}, S, { _tomb: TOMB })); }
+function loadLocal() {
+  const d = LS.get(LSKEY);
+  if (d) COLS.forEach(c => { S[c] = d[c] || {}; TOMB[c] = (d._tomb && d._tomb[c]) || {}; });
+  COLS.forEach(c => { loaded[c] = true; });
+}
+function subscribeCol(col) {
+  let q = store.db.collection(col);
+  q = (col === 'focus' || col === 'journal') ? q.orderBy('date', 'desc').limit(500) : q.limit(1000);
+  q.onSnapshot(snap => {
+    const o = {};
+    for (const d of snap.docs) o[d.id] = d.data();
+    S[col] = o; loaded[col] = true; schedule();
+  }, err => {
+    loaded[col] = true;
+    if (err && err.code === 'revoked') { store.readOnly = true; setStatus(); }
+    else if (err && err.code === 'unavailable') setTimeout(() => subscribeCol(col), 3000);
+    else toast('Sebagian data gagal dimuat. Muat ulang halaman.');
+    schedule();
+  });
+}
+
+/* ================= GitHub sync (private repo, data.json) ================= */
+const GHKEY = 'logbook-github-v1';
+const GH = { cfg: null, sha: null, busy: false, again: false, timer: 0, last: 0, state: 'idle', msg: '', started: false };
+const b64enc = s => { const by = new TextEncoder().encode(s); let bin = ''; for (let i = 0; i < by.length; i += 0x8000) bin += String.fromCharCode.apply(null, by.subarray(i, i + 0x8000)); return btoa(bin); };
+const b64dec = b => { const bin = atob(String(b).replace(/\s/g, '')); const by = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) by[i] = bin.charCodeAt(i); return new TextDecoder().decode(by); };
+async function ghFetch(path, opts, token) {
+  opts = opts || {};
+  const headers = Object.assign({ Authorization: 'Bearer ' + (token || GH.cfg.token), Accept: 'application/vnd.github+json' }, opts.headers || {});
+  try { return await fetch('https://api.github.com' + path, Object.assign({}, opts, { headers, cache: 'no-store' })); }
+  catch (e) { const er = new Error('offline'); er.offline = true; throw er; }
+}
+async function httpErr(r) { const e = new Error('HTTP ' + r.status); e.status = r.status; try { e.detail = (await r.json()).message || ''; } catch (x) { e.detail = ''; } return e; }
+const ghPath = () => '/repos/' + encodeURIComponent(GH.cfg.owner) + '/' + encodeURIComponent(GH.cfg.repo) + '/contents/' + GH.cfg.file;
+async function ghPull() {
+  const r = await ghFetch(ghPath());
+  if (r.status === 404) { GH.sha = null; return null; }
+  if (!r.ok) throw await httpErr(r);
+  const j = await r.json(); GH.sha = j.sha;
+  let text = '';
+  if (j.encoding === 'base64' && j.content) text = b64dec(j.content);
+  else {
+    const r2 = await ghFetch(ghPath(), { headers: { Accept: 'application/vnd.github.raw+json' } });
+    if (!r2.ok) throw await httpErr(r2);
+    text = await r2.text();
+  }
+  if (!text.trim()) return null;
+  try { return JSON.parse(text); } catch (e) { const er = new Error('json'); er.status = 'json'; throw er; }
+}
+function pruneTomb() {
+  const cut = Date.now() - 120 * 864e5, out = {};
+  COLS.forEach(c => { out[c] = {}; Object.keys(TOMB[c] || {}).forEach(id => { if (TOMB[c][id] > cut) out[c][id] = TOMB[c][id]; }); });
+  return out;
+}
+async function ghPut() {
+  const payload = { app: 'logbook', v: 1, saved: new Date().toISOString(), tasks: S.tasks, projects: S.projects, habits: S.habits, focus: S.focus, journal: S.journal, _tomb: pruneTomb() };
+  const body = { message: 'logbook: update ' + ymd(new Date()) + ' ' + pad(new Date().getHours()) + ':' + pad(new Date().getMinutes()), content: b64enc(JSON.stringify(payload, null, 1)) };
+  if (GH.sha) body.sha = GH.sha;
+  const r = await ghFetch(ghPath(), { method: 'PUT', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
+  if (r.status === 409) return 'conflict';
+  if (r.status === 422) { const e = await httpErr(r); if (/sha/i.test(e.detail)) return 'conflict'; throw e; }
+  if (!r.ok) throw await httpErr(r);
+  const j = await r.json(); GH.sha = j.content && j.content.sha; return 'ok';
+}
+/* per-document last-writer-wins on _u (ms); deletions are tombstones */
+function mergeState(remote) {
+  let needPush = false;
+  const rt = (remote && remote._tomb) || {};
+  COLS.forEach(col => {
+    const L = S[col] || {}, R = (remote && remote[col]) || {}, Lt = TOMB[col] || {}, Rt = rt[col] || {};
+    const ids = new Set(Object.keys(L).concat(Object.keys(R), Object.keys(Lt), Object.keys(Rt)));
+    const out = {}, tout = {};
+    ids.forEach(id => {
+      const c = [];
+      if (R[id]) c.push({ r: 1, u: Number(R[id]._u) || 0, doc: R[id] });
+      if (Rt[id]) c.push({ r: 1, u: Number(Rt[id]) || 0, del: true });
+      if (L[id]) c.push({ r: 0, u: Number(L[id]._u) || 0, doc: L[id] });
+      if (Lt[id]) c.push({ r: 0, u: Number(Lt[id]) || 0, del: true });
+      c.sort((a, b) => b.u - a.u || b.r - a.r);
+      const w = c[0];
+      if (w.del) tout[id] = w.u; else out[id] = w.doc;
+      if (!w.r) {
+        const rem = R[id] ? { u: Number(R[id]._u) || 0, del: false } : Rt[id] ? { u: Number(Rt[id]) || 0, del: true } : null;
+        if (!rem || rem.u !== w.u || rem.del !== !!w.del) needPush = true;
+      }
+    });
+    S[col] = out; TOMB[col] = tout;
+  });
+  return needPush;
+}
+function schedulePush() { clearTimeout(GH.timer); GH.timer = setTimeout(ghSync, 1500); setGh('pending'); }
+async function ghSync() {
+  if (store.mode !== 'github') return;
+  if (GH.busy) { GH.again = true; return; }
+  GH.busy = true; GH.again = false; setGh('sync');
+  try {
+    let done = false;
+    for (let i = 0; i < 4 && !done; i++) {
+      const remote = await ghPull();
+      const need = mergeState(remote);
+      saveLocal(); schedule();
+      if (!need) { done = true; break; }
+      if (await ghPut() === 'ok') done = true;
+    }
+    if (!done) { const e = new Error('conflict'); e.status = 'conflict'; throw e; }
+    GH.last = Date.now(); setGh('ok');
+  } catch (e) {
+    if (e && e.offline) setGh('offline');
+    else if (e && e.status === 401) setGh('auth', 'Token GitHub ditolak (tidak valid atau kedaluwarsa). Buat token baru lalu hubungkan ulang di Review → Data.');
+    else if (e && e.status === 403) setGh('err', 'Token tidak punya izin menulis ke repo. Pastikan izin Contents: Read and write.' + (e.detail ? ' (' + e.detail + ')' : ''));
+    else if (e && e.status === 404) setGh('err', 'Repo tidak ditemukan atau token tidak punya akses ke repo itu.');
+    else if (e && e.status === 'json') setGh('err', 'File data.json di repo tidak bisa dibaca. Periksa isinya di GitHub; perubahan di perangkat ini ditahan dulu.');
+    else setGh('err', 'Sinkron gagal' + (e && e.status ? ' (HTTP ' + e.status + ')' : '') + '. Akan dicoba lagi.');
+  } finally {
+    GH.busy = false;
+    if (GH.again) setTimeout(ghSync, 300);
+  }
+}
+function setGh(state, msg) { GH.state = state; GH.msg = msg || ''; setStatus(); renderGhBox(); }
+function startGithub(cfg) {
+  GH.cfg = cfg; store.mode = 'github';
+  loadLocal();
+  setStatus(); schedule();
+  ghSync();
+  if (!GH.started) {
+    GH.started = true;
+    setInterval(() => { if (store.mode === 'github' && document.visibilityState === 'visible' && !GH.busy) ghSync(); }, 60000);
+    document.addEventListener('visibilitychange', () => {
+      if (store.mode !== 'github') return;
+      if (document.visibilityState === 'visible') ghSync();
+      else if (GH.state === 'pending') { clearTimeout(GH.timer); ghSync(); }
+    });
+    window.addEventListener('online', () => { if (store.mode === 'github') ghSync(); });
+  }
+}
+async function ghConnect(token, repo, owner) {
+  const msg = (t, cls) => { const m = $('#gh-msg'); if (m) { m.textContent = t; m.className = 'ghmsg ' + (cls || ''); } };
+  token = token.trim(); repo = repo.trim(); owner = owner.trim();
+  if (!token) return msg('Tempel token GitHub dulu.', 'crit');
+  if (!repo) return msg('Isi nama repo data.', 'crit');
+  msg('Memeriksa token…');
+  try {
+    let r = await ghFetch('/user', {}, token);
+    if (r.status === 401) return msg('Token tidak valid atau sudah kedaluwarsa.', 'crit');
+    if (!owner && r.ok) owner = (await r.json()).login || '';
+    if (!owner) return msg('Isi kolom pemilik repo (username GitHub).', 'crit');
+    r = await ghFetch('/repos/' + encodeURIComponent(owner) + '/' + encodeURIComponent(repo), {}, token);
+    if (r.status === 404) return msg('Repo ' + owner + '/' + repo + ' tidak ditemukan, atau token belum diberi akses ke repo itu.', 'crit');
+    if (!r.ok) return msg('GitHub menolak permintaan (HTTP ' + r.status + ').', 'crit');
+    const j = await r.json();
+    if (!j.private) return msg('Repo ' + owner + '/' + repo + ' masih publik. Jadikan privat dulu (Settings → General → Danger Zone → Change visibility) supaya data Anda tidak terbuka.', 'crit');
+  } catch (e) { return msg(e && e.offline ? 'Tidak ada koneksi internet.' : 'Gagal menghubungi GitHub.', 'crit'); }
+  const cfg = { token, owner, repo, file: 'data.json' };
+  LS.set(GHKEY, cfg); LS.set('logbook-mode', 'github');
+  ghBoxKey = '';
+  startGithub(cfg);
+  toast('Tersambung ke ' + owner + '/' + repo + '.');
+}
+function ghDisconnect() {
+  try { localStorage.removeItem(GHKEY); } catch (e) {}
+  LS.set('logbook-mode', 'local');
+  GH.cfg = null; GH.sha = null; store.mode = 'local'; ghBoxKey = '';
+  setStatus(); renderGhBox(); render();
+  toast('Perangkat ini diputus dari GitHub. Data tetap ada di perangkat ini.');
+}
+let ghBoxKey = '', ghAskDisc = false;
+function renderGhBox() {
+  const box = $('#gh-box'); if (!box) return;
+  if (store.mode === 'db' || store.mode === 'loading' || IN_CLAUDE) { if (box.innerHTML) box.innerHTML = ''; ghBoxKey = ''; return; }
+  if (store.mode === 'github') {
+    const st = { pending: 'Menunggu sinkron…', sync: 'Menyinkron…', ok: 'Tersinkron ' + (GH.last ? pad(new Date(GH.last).getHours()) + ':' + pad(new Date(GH.last).getMinutes()) : ''), offline: 'Offline — perubahan tersimpan di perangkat ini dan dikirim saat online.', auth: GH.msg, err: GH.msg, idle: '' }[GH.state] || '';
+    const cls = GH.state === 'ok' ? 'ok' : (GH.state === 'auth' || GH.state === 'err') ? 'crit' : '';
+    const key = 'gh|' + GH.cfg.owner + '/' + GH.cfg.repo + '|' + GH.state + '|' + st + '|' + ghAskDisc;
+    if (key === ghBoxKey) return; ghBoxKey = key;
+    box.innerHTML = '<div class="ghbox"><h3>Sinkron GitHub</h3>' +
+      '<p class="ghmsg">Tersambung ke <b class="mono">' + esc(GH.cfg.owner + '/' + GH.cfg.repo) + '</b> · data.json</p>' +
+      '<p class="ghmsg ' + cls + '">' + esc(st) + '</p>' +
+      (ghAskDisc
+        ? '<div class="confirm">Hapus token dari perangkat ini? <button class="btn sm danger" type="button" data-act="gh-disc">Ya, putuskan</button><button class="btn sm" type="button" data-act="gh-disc-cancel">Batal</button></div>'
+        : '<div class="row-btns"><button class="btn sm" type="button" data-act="gh-sync">Sinkron sekarang</button><button class="btn sm ghost" type="button" data-act="gh-disc-ask">Putuskan perangkat ini</button></div>') +
+      '</div>';
+    return;
+  }
+  const key = 'form';
+  if (key === ghBoxKey) return; ghBoxKey = key;
+  const host = location.hostname || '';
+  const owner = /\.github\.io$/i.test(host) ? host.split('.')[0] : '';
+  box.innerHTML = '<form class="ghbox" id="gh-form" autocomplete="off"><h3>Sinkron lewat GitHub</h3>' +
+    '<p class="ghmsg">Data disimpan sebagai <span class="mono">data.json</span> di repo GitHub <b>privat</b> Anda. Isi sekali di setiap perangkat; token disimpan hanya di browser perangkat itu.</p>' +
+    '<div class="frow"><label class="field"><span>Repo data</span><input class="in mono" id="gh-repo" value="Logbook-Data" spellcheck="false"></label>' +
+    '<label class="field"><span>Pemilik</span><input class="in mono" id="gh-owner" value="' + esc(owner) + '" placeholder="otomatis dari token" spellcheck="false"></label></div>' +
+    '<label class="field"><span>Fine-grained token</span><input class="in mono" id="gh-token" type="password" placeholder="github_pat_…" spellcheck="false" autocomplete="off"></label>' +
+    '<div class="row-btns"><button class="btn primary" type="submit">Hubungkan</button>' + (store.mode === 'setup' ? '<button class="btn ghost" type="button" data-act="use-local">Pakai di perangkat ini saja</button>' : '') + '</div>' +
+    '<p class="ghmsg" id="gh-msg"></p></form>';
+}
+
+async function init() {
+  render();
+  let db = null;
+  if (IN_CLAUDE) { try { db = await window.claude.use('db'); } catch (e) { db = null; } }
+  if (db) {
+    store.db = db; store.mode = 'db';
+    COLS.forEach(subscribeCol);
+    try {
+      const u = await window.claude.use('user');
+      if (u) {
+        const own = await u.isOwner(), ed = await u.canEdit();
+        if (!own && !ed) store.readOnly = true;
+      }
+    } catch (e) {}
+  } else {
+    const cfg = IN_CLAUDE ? null : LS.get(GHKEY);
+    if (cfg && cfg.token && cfg.owner && cfg.repo) startGithub(Object.assign({ file: 'data.json' }, cfg));
+    else { store.mode = (IN_CLAUDE || LS.get('logbook-mode') === 'local') ? 'local' : 'setup'; loadLocal(); }
+  }
+  if (IN_CLAUDE) { try { store.downloads = await window.claude.use('downloads'); } catch (e) { store.downloads = null; } }
+  setStatus(); renderGhBox(); render();
+}
+let bannerHtml = '';
+function setStatus() {
+  let dot = '', txt = 'Menyambungkan…', b = '';
+  if (store.mode === 'db') { dot = store.readOnly ? 'warn' : 'ok'; txt = store.readOnly ? 'Hanya baca' : 'Tersimpan di akun'; }
+  else if (store.mode === 'local') { dot = 'warn'; txt = 'Hanya di perangkat ini'; }
+  else if (store.mode === 'setup') { dot = 'warn'; txt = 'Belum disinkron'; }
+  else if (store.mode === 'github') {
+    const m = { pending: ['warn', 'Menunggu sinkron…'], sync: ['', 'Menyinkron…'], ok: ['ok', 'Tersinkron · GitHub'], offline: ['warn', 'Offline · tersimpan di perangkat'], auth: ['crit', 'Token GitHub ditolak'], err: ['crit', 'Sinkron gagal'], idle: ['', 'GitHub'] }[GH.state] || ['', 'GitHub'];
+    dot = m[0]; txt = m[1];
+  }
+  ['st-dot', 'st-dot-m'].forEach(i => { const el = $('#' + i); el.className = 'dot ' + dot; });
+  ['st-text', 'st-text-m'].forEach(i => { $('#' + i).textContent = txt; });
+  if (store.mode === 'setup') {
+    b = '<div class="banner"><span class="dot warn"></span><div><b>Belum tersinkron.</b> Data baru tersimpan di perangkat ini. Hubungkan repo GitHub privat Anda agar sama di HP dan laptop.</div><button class="btn sm primary" type="button" data-act="goto-gh">Hubungkan</button></div>';
+  } else if (store.mode === 'local' && IN_CLAUDE) {
+    b = '<div class="banner"><span class="dot warn"></span><div><b>Mode lokal.</b> Penyimpanan akun tidak tersedia di tampilan ini, jadi data hanya tersimpan di browser ini.</div></div>';
+  } else if (store.mode === 'github' && (GH.state === 'auth' || GH.state === 'err')) {
+    b = '<div class="banner crit"><span class="dot crit"></span><div>' + esc(GH.msg) + '</div><button class="btn sm" type="button" data-act="goto-gh">Buka pengaturan</button></div>';
+  } else if (store.readOnly) {
+    b = '<div class="banner"><span class="dot warn"></span><div>Logbook ini pribadi. Hanya pemiliknya yang bisa melihat dan mengubah isinya.</div></div>';
+  }
+  if (b !== bannerHtml) { bannerHtml = b; $('#banner').innerHTML = b; }
+}
+
+/* ================= derived data ================= */
+const PR = { 1: 'P1', 2: 'P2', 3: 'P3' };
+const PSTAT = { aktif: 'Aktif', menunggu: 'Menunggu', ditunda: 'Ditunda', selesai: 'Selesai' };
+const PORDER = { aktif: 0, menunggu: 1, ditunda: 2, selesai: 3 };
+const AREAS = ['Kantor', 'Usaha', 'Pribadi'];
+const tasksArr = () => Object.keys(S.tasks).map(id => Object.assign({ id }, S.tasks[id]));
+const projArr = () => Object.keys(S.projects).map(id => Object.assign({ id }, S.projects[id]));
+const habArr = () => Object.keys(S.habits).map(id => Object.assign({ id }, S.habits[id]))
+  .sort((a, b) => (a.order || 0) - (b.order || 0) || String(a.created || '').localeCompare(String(b.created || '')));
+const isDone = t => t.status === 'done';
+const doneDate = t => t.doneAt ? ymd(new Date(t.doneAt)) : '';
+const nextNo = () => tasksArr().reduce((m, t) => Math.max(m, Number(t.no) || 0), 0) + 1;
+const projCode = p => p ? (p.code || p.name || '') : '';
+function taskSort(a, b) {
+  return (a.priority || 2) - (b.priority || 2) || String(a.due || '9999').localeCompare(String(b.due || '9999')) || (a.no || 0) - (b.no || 0);
+}
+function focusOn(date) {
+  const f = S.focus[date]; const ss = (f && Array.isArray(f.sessions)) ? f.sessions : [];
+  return { min: ss.reduce((a, s) => a + (Number(s.min) || 0), 0), n: ss.length, sessions: ss };
+}
+function streak(h) {
+  const days = h.days || {}; let d = TODAY(); if (!days[d]) d = addD(d, -1);
+  let n = 0; while (days[d]) { n++; d = addD(d, -1); } return n;
+}
+function rate30(h) {
+  const days = h.days || {}, td = TODAY();
+  const created = h.created ? ymd(new Date(h.created)) : addD(td, -29);
+  const span = Math.min(30, Math.max(1, dd(td, created) + 1));
+  let c = 0; for (let i = 0; i < span; i++) if (days[addD(td, -i)]) c++;
+  return Math.round(c / span * 100);
+}
+function projStats(pid) {
+  const ts = tasksArr().filter(t => t.projectId === pid);
+  const done = ts.filter(isDone).length, td = TODAY();
+  const open = ts.filter(t => !isDone(t)).sort((a, b) => String(a.due || '9999').localeCompare(String(b.due || '9999')) || taskSort(a, b));
+  return { total: ts.length, done, overdue: open.filter(t => t.due && t.due < td).length, next: open[0] || null };
+}
+
+/* ================= rendering helpers ================= */
+function taskRow(t) {
+  const p = S.projects[t.projectId], done = isDone(t);
+  let due = '';
+  if (done) { const d = doneDate(t); if (d) due = '<span class="due">Selesai ' + esc(fmtD(d)) + '</span>'; }
+  else if (isDate(t.due)) { const n = dd(t.due, TODAY()); due = '<span class="due ' + (n < 0 ? 'crit' : n === 0 ? 'warn' : '') + '">' + esc(dueLabel(t.due)) + '</span>'; }
+  return '<div class="trow p' + (t.priority || 2) + (done ? ' is-done' : '') + '" data-id="' + esc(t.id) + '">' +
+    '<button class="tick" type="button" data-act="toggle" aria-pressed="' + done + '" aria-label="' + (done ? 'Tandai belum selesai' : 'Tandai selesai') + '">' + CHECK + '</button>' +
+    '<button class="tmain" type="button" data-act="edit"><span class="ttitle">' + esc(t.title) + '</span><span class="tmeta">' +
+      '<span class="mono tid">T-' + pad3(t.no) + '</span>' +
+      (p ? '<span class="pchip mono">' + esc(projCode(p)) + '</span>' : '') + due +
+      (t.status === 'doing' && !done ? '<span class="pill doing">Dikerjakan</span>' : '') +
+      (t.seed ? '<span class="pill seed">usulan</span>' : '') +
+      (t.notes ? '<span title="Ada catatan">✎ catatan</span>' : '') +
+    '</span></button>' +
+    '<span class="pri mono">' + PR[t.priority || 2] + '</span></div>';
+}
+function niceMax(m) {
+  if (m <= 4) return 4;
+  const p = Math.pow(10, Math.floor(Math.log10(m)));
+  for (const k of [1, 2, 4, 5, 6, 8, 10]) if (k * p >= m) return k * p;
+  return 10 * p;
+}
+function barChart(points, label) {
+  const W = 560, H = 176, L = 36, R = 8, T = 18, B = 26;
+  const max = niceMax(Math.max(1, ...points.map(p => p.v)));
+  const iw = W - L - R, ih = H - T - B, bw = iw / points.length;
+  let g = '';
+  [0, max / 2, max].forEach((t, i) => {
+    const y = T + ih - (t / max) * ih;
+    g += '<line class="gl' + (i === 0 ? ' base' : '') + '" x1="' + L + '" x2="' + (W - R) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '"/>';
+    if (Number.isInteger(t)) g += '<text class="ax" x="' + (L - 7) + '" y="' + (y + 3.5).toFixed(1) + '" text-anchor="end">' + t + '</text>';
+  });
+  points.forEach((p, i) => {
+    const h = (p.v / max) * ih, x = L + i * bw + bw * 0.2, w = bw * 0.6, y = T + ih - h, cx = x + w / 2;
+    if (p.v > 0) g += '<rect class="b' + (p.now ? ' now' : '') + '" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + Math.max(h, 2).toFixed(1) + '" rx="2"><title>' + esc(p.title) + '</title></rect>';
+    if (p.now && p.v > 0) g += '<text class="vl" x="' + cx.toFixed(1) + '" y="' + (y - 5).toFixed(1) + '" text-anchor="middle">' + p.v + '</text>';
+    g += '<text class="ax' + (p.now ? ' now' : '') + '" x="' + cx.toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(p.x) + '</text>';
+  });
+  return '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(label) + '">' + g + '</svg>';
+}
+function last14(fn) {
+  const td = TODAY(), pts = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = addD(td, -i), r = fn(d), dt = parse(d);
+    pts.push({ d, v: r.v, title: r.title, now: i === 0, x: String(dt.getDate()) });
+  }
+  return pts;
+}
+function projectOptions(sel, includeDone, emptyLabel) {
+  const ps = projArr().filter(p => includeDone || p.status !== 'selesai' || p.id === sel)
+    .sort((a, b) => AREAS.indexOf(a.area) - AREAS.indexOf(b.area) || String(a.name).localeCompare(String(b.name)));
+  let h = '<option value="">' + esc(emptyLabel) + '</option>';
+  AREAS.forEach(area => {
+    const g = ps.filter(p => (p.area || 'Kantor') === area); if (!g.length) return;
+    h += '<optgroup label="' + area + '">' + g.map(p => '<option value="' + esc(p.id) + '"' + (p.id === sel ? ' selected' : '') + '>' + esc((p.code ? p.code + ' · ' : '') + p.name) + '</option>').join('') + '</optgroup>';
+  });
+  return h;
+}
+function fillSelect(el, html) {
+  if (document.activeElement === el) return;
+  if (el.dataset.sig === html) return;
+  const v = el.value; el.innerHTML = html; el.dataset.sig = html;
+  if ($$('option', el).some(o => o.value === v)) el.value = v;
+}
+
+/* ================= views ================= */
+let raf = 0;
+function schedule() { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; render(); }); }
+function render() {
+  const td = TODAY();
+  const all = tasksArr(), open = all.filter(t => !isDone(t));
+  const overdue = open.filter(t => isDate(t.due) && t.due < td);
+  const dueToday = open.filter(t => t.due === td);
+  const nb = overdue.length + dueToday.length;
+  const nbt = $('#nb-today'); nbt.textContent = nb ? nb : ''; nbt.className = 'badge' + (overdue.length ? ' hot' : '');
+  $('#nb-tasks').textContent = open.length ? open.length : '';
+  renderToday(td, all, open, overdue, dueToday);
+  renderTasks(td, all);
+  renderProjects();
+  renderHabits(td);
+  renderFocus(td);
+  renderReview();
+}
+const ready = (...cols) => cols.every(c => loaded[c]);
+const loadingRow = '<div class="empty">Memuat…</div>';
+
+function renderToday(td, all, open, overdue, dueToday) {
+  $('#today-eyebrow').textContent = 'W' + isoWeek(td) + ' · Hari ke-' + dayOfYear(td) + ' · ' + shiftLabel();
+  $('#today-title').textContent = fmtLong(td);
+  const ws = weekStart(td), prevWs = addD(ws, -7);
+  const doneWeek = all.filter(t => isDone(t) && doneDate(t) >= ws && doneDate(t) <= addD(ws, 6)).length;
+  const donePrev = all.filter(t => isDone(t) && doneDate(t) >= prevWs && doneDate(t) < ws).length;
+  const doneToday = all.filter(t => isDone(t) && doneDate(t) === td).length;
+  const f = focusOn(td);
+  const fv = f.min >= 60 ? Math.floor(f.min / 60) + '<small>j</small> ' + (f.min % 60) + '<small>m</small>' : f.min + '<small>mnt</small>';
+  $('#today-stats').innerHTML =
+    '<div class="stat' + (overdue.length ? ' crit' : '') + '"><div class="k">Terlambat</div><div class="v">' + overdue.length + '</div><div class="s">' + (overdue.length ? 'tugas lewat tenggat' : 'tidak ada yang lewat') + '</div></div>' +
+    '<div class="stat' + (dueToday.length ? ' warn' : '') + '"><div class="k">Jatuh tempo hari ini</div><div class="v">' + dueToday.length + '</div><div class="s">' + doneToday + ' selesai hari ini</div></div>' +
+    '<div class="stat"><div class="k">Selesai W' + isoWeek(td) + '</div><div class="v">' + doneWeek + '</div><div class="s">minggu lalu ' + donePrev + '</div></div>' +
+    '<div class="stat"><div class="k">Fokus hari ini</div><div class="v">' + fv + '</div><div class="s">' + f.n + ' sesi tercatat</div></div>';
+
+  const list = $('#today-list');
+  if (!ready('tasks', 'projects')) { list.innerHTML = loadingRow; }
+  else {
+    const agenda = open.filter(t => (isDate(t.due) && t.due <= td) || t.status === 'doing')
+      .sort((a, b) => ((a.due && a.due < td) ? 0 : 1) - ((b.due && b.due < td) ? 0 : 1) || taskSort(a, b));
+    const doneTodayList = all.filter(t => isDone(t) && doneDate(t) === td);
+    $('#agenda-count').textContent = agenda.length + ' terbuka · ' + doneTodayList.length + ' selesai';
+    let h = '';
+    if (!all.length) h = '<div class="empty"><b>Belum ada tugas.</b> Ketik di kolom “Tambah tugas untuk hari ini” di atas, lalu tekan Enter. Tugas dengan tenggat hari ini, yang terlambat, dan yang sedang dikerjakan muncul di sini.</div>';
+    else {
+      h = agenda.length ? agenda.map(taskRow).join('') : '<div class="empty"><b>Tidak ada tugas jatuh tempo hari ini.</b> Tugas yang sedang dikerjakan atau bertenggat hari ini akan muncul di sini.</div>';
+      const upcoming = open.filter(t => isDate(t.due) && t.due > td).sort((a, b) => a.due.localeCompare(b.due) || taskSort(a, b)).slice(0, 4);
+      if (upcoming.length) h += '<div class="grp upnext"><span>Berikutnya</span><span>' + upcoming.length + '</span></div>' + upcoming.map(taskRow).join('');
+      if (doneTodayList.length) h += '<div class="grp"><span>Selesai hari ini</span><span>' + doneTodayList.length + '</span></div>' + doneTodayList.map(taskRow).join('');
+    }
+    list.innerHTML = h;
+  }
+
+  const hb = $('#today-habits');
+  if (!ready('habits')) hb.innerHTML = loadingRow;
+  else {
+    const hs = habArr();
+    hb.innerHTML = hs.length ? hs.map(hh => {
+      const on = !!(hh.days && hh.days[td]), st = streak(hh);
+      return '<div class="hrow"><button class="hcell' + (on ? ' on' : '') + '" type="button" data-act="hab-tick" data-hid="' + esc(hh.id) + '" data-date="' + td + '" aria-pressed="' + on + '" aria-label="' + esc(hh.name) + ' hari ini">' + CHECK + '</button>' +
+        '<span class="hname">' + esc(hh.name) + (hh.seed ? ' <span class="pill seed">contoh</span>' : '') + '</span><span class="streak' + (st ? ' on' : '') + '">' + st + ' hr</span></div>';
+    }).join('') : '<div class="empty">Belum ada kebiasaan. <button class="linkbtn" data-go="habits">Tambahkan yang pertama</button>, mis. “Cek tren KPI pagi”.</div>';
+  }
+
+  const tp = $('#today-projects');
+  if (!ready('projects')) tp.innerHTML = loadingRow;
+  else {
+    const ps = projArr().filter(p => p.status !== 'selesai')
+      .sort((a, b) => String(a.target || '9999').localeCompare(String(b.target || '9999')) || PORDER[a.status] - PORDER[b.status]).slice(0, 5);
+    tp.innerHTML = ps.length ? ps.map(p => {
+      const st = projStats(p.id), pct = st.total ? Math.round(st.done / st.total * 100) : 0;
+      const cd = isDate(p.target) ? countdown(p.target) : null;
+      return '<div class="prow"><button class="nm" type="button" data-go="tasks" data-proj="' + esc(p.id) + '"><span class="pcode">' + esc(p.code || '') + '</span> ' + esc(p.name) + '</button>' +
+        '<span class="cd ' + (cd ? cd.c : '') + '">' + (cd ? esc(fmtD(p.target)) + ' · ' + esc(cd.t) : esc(PSTAT[p.status] || '')) + '</span>' +
+        '<div class="bar' + (pct === 100 ? ' full' : '') + '"><i style="width:' + pct + '%"></i></div></div>';
+    }).join('') : '<div class="empty">Belum ada proyek aktif. <button class="linkbtn" data-act="new-project">Buat proyek</button></div>';
+  }
+
+  const pts = last14(d => { const n = all.filter(t => isDone(t) && doneDate(t) === d).length; return { v: n, title: fmtD(d) + ': ' + n + ' tugas selesai' }; });
+  $('#today-chart').innerHTML = barChart(pts, 'Jumlah tugas selesai per hari, 14 hari terakhir');
+  const sum14 = pts.reduce((a, p) => a + p.v, 0);
+  $('#today-chart-sum').innerHTML = '<span>Total <b>' + sum14 + '</b></span><span>Rata-rata <b>' + (sum14 / 14).toFixed(1) + '</b>/hari</span>';
+}
+
+const FILTERS = [
+  ['aktif', 'Aktif'], ['hariini', 'Hari ini'], ['7hari', '7 hari'], ['terlambat', 'Terlambat'], ['tanpa', 'Tanpa tenggat'], ['selesai', 'Selesai']
+];
+function filterTasks(all, f, td) {
+  switch (f) {
+    case 'hariini': return all.filter(t => !isDone(t) && ((isDate(t.due) && t.due <= td) || t.status === 'doing'));
+    case '7hari': return all.filter(t => !isDone(t) && isDate(t.due) && t.due <= addD(td, 7));
+    case 'terlambat': return all.filter(t => !isDone(t) && isDate(t.due) && t.due < td);
+    case 'tanpa': return all.filter(t => !isDone(t) && !t.due);
+    case 'selesai': return all.filter(isDone);
+    default: return all.filter(t => !isDone(t));
+  }
+}
+function renderTasks(td, all) {
+  fillSelect($('#qa-proj'), projectOptions('', false, 'Tanpa proyek'));
+  fillSelect($('#tf-proj'), projectOptions('', true, 'Semua proyek'));
+  if ($('#tf-proj').value !== ui.taskProject && document.activeElement !== $('#tf-proj')) {
+    if ($$('option', $('#tf-proj')).some(o => o.value === ui.taskProject)) $('#tf-proj').value = ui.taskProject; else ui.taskProject = '';
+  }
+  let scoped = all;
+  if (ui.taskProject) scoped = scoped.filter(t => t.projectId === ui.taskProject);
+  const q = ui.taskQuery.trim().toLowerCase();
+  if (q) scoped = scoped.filter(t => (t.title + ' ' + (t.notes || '') + ' T-' + pad3(t.no) + ' ' + projCode(S.projects[t.projectId])).toLowerCase().includes(q));
+  $('#task-filters').innerHTML = FILTERS.map(([k, l]) => {
+    const n = filterTasks(scoped, k, td).length;
+    return '<button class="chip' + (k === 'terlambat' && n ? ' crit' : '') + '" type="button" data-act="filter" data-f="' + k + '" aria-pressed="' + (ui.taskFilter === k) + '">' + l + ' <span class="n">' + n + '</span></button>';
+  }).join('');
+  const open = all.filter(t => !isDone(t)).length;
+  $('#tasks-eyebrow').textContent = open + ' terbuka · ' + (all.length - open) + ' selesai · total ' + all.length;
+  const box = $('#task-list');
+  if (!ready('tasks', 'projects')) { box.innerHTML = loadingRow; return; }
+  const list = filterTasks(scoped, ui.taskFilter, td);
+  if (!all.length) { box.innerHTML = '<div class="empty"><b>Daftar tugas masih kosong.</b> Ketik tugas pertama di kolom di atas, pilih proyek dan tenggat bila perlu, lalu tekan Tambah. Klik tugas untuk menambah catatan atau mengubahnya.</div>'; return; }
+  if (!list.length) { box.innerHTML = '<div class="empty">Tidak ada tugas di filter ini.</div>'; return; }
+  let h = '';
+  if (ui.taskFilter === 'selesai') {
+    const s = list.sort((a, b) => String(b.doneAt || '').localeCompare(String(a.doneAt || ''))).slice(0, 200);
+    h = s.map(taskRow).join('');
+    if (list.length > 200) h += '<div class="empty">Menampilkan 200 tugas selesai terbaru.</div>';
+  } else {
+    const groups = [
+      ['Terlambat', t => isDate(t.due) && t.due < td, 'crit'],
+      ['Hari ini', t => t.due === td],
+      ['Besok', t => t.due === addD(td, 1)],
+      ['7 hari ke depan', t => isDate(t.due) && t.due > addD(td, 1) && t.due <= addD(td, 7)],
+      ['Nanti', t => isDate(t.due) && t.due > addD(td, 7)],
+      ['Tanpa tenggat', t => !isDate(t.due)]
+    ];
+    groups.forEach(([name, fn, cls]) => {
+      const g = list.filter(fn).sort((a, b) => String(a.due || '').localeCompare(String(b.due || '')) || taskSort(a, b));
+      if (!g.length) return;
+      h += '<div class="grp' + (cls ? ' ' + cls : '') + '"><span>' + name + '</span><span>' + g.length + '</span></div>' + g.map(taskRow).join('');
+    });
+  }
+  box.innerHTML = h;
+}
+
+function renderProjects() {
+  const ps = projArr();
+  const counts = { Semua: ps.filter(p => ui.projShowDone || p.status !== 'selesai').length };
+  AREAS.forEach(a => { counts[a] = ps.filter(p => (p.area || 'Kantor') === a && (ui.projShowDone || p.status !== 'selesai')).length; });
+  $('#proj-filters').innerHTML = ['Semua'].concat(AREAS).map(a => '<button class="chip" type="button" data-act="area" data-area="' + a + '" aria-pressed="' + (ui.projArea === a) + '">' + a + ' <span class="n">' + counts[a] + '</span></button>').join('');
+  const act = ps.filter(p => p.status === 'aktif').length, wait = ps.filter(p => p.status === 'menunggu').length;
+  $('#proj-eyebrow').textContent = act + ' aktif · ' + wait + ' menunggu · ' + ps.filter(p => p.status === 'selesai').length + ' selesai';
+  const grid = $('#proj-grid');
+  if (!ready('projects', 'tasks')) { grid.innerHTML = '<div class="panel">' + loadingRow + '</div>'; return; }
+  const list = ps.filter(p => (ui.projArea === 'Semua' || (p.area || 'Kantor') === ui.projArea) && (ui.projShowDone || p.status !== 'selesai'))
+    .sort((a, b) => PORDER[a.status] - PORDER[b.status] || String(a.target || '9999').localeCompare(String(b.target || '9999')) || String(a.name).localeCompare(String(b.name)));
+  if (!ps.length) { grid.innerHTML = '<div class="panel empty"><b>Belum ada proyek.</b> Klik “Proyek baru” untuk mencatat proyek CAPEX, shutdown, atau usaha, lalu kelompokkan tugas di bawahnya.</div>'; return; }
+  if (!list.length) { grid.innerHTML = '<div class="panel empty">Tidak ada proyek di area ini.</div>'; return; }
+  grid.innerHTML = list.map(p => {
+    const st = projStats(p.id), pct = st.total ? Math.round(st.done / st.total * 100) : 0;
+    const cd = isDate(p.target) ? countdown(p.target) : null;
+    return '<article class="panel pcard" data-pid="' + esc(p.id) + '">' +
+      '<div class="pcard-top"><span class="pcode">' + esc(p.code || '—') + ' · ' + esc(p.area || 'Kantor') + '</span><span class="pstat ' + esc(p.status) + '">' + esc(PSTAT[p.status] || p.status) + '</span></div>' +
+      '<h3 class="pname">' + esc(p.name) + '</h3>' +
+      '<div class="pmeta">' + (cd ? '<span>Target ' + esc(fmtD(p.target, true)) + '</span><span class="' + cd.c + '">' + esc(cd.t) + '</span>' : '<span>Tanpa target tanggal</span>') +
+        (st.overdue ? '<span class="crit">' + st.overdue + ' tugas terlambat</span>' : '') + '</div>' +
+      (p.notes ? '<div class="pnotes">' + esc(p.notes) + '</div>' : '') +
+      '<div class="bar' + (pct === 100 ? ' full' : '') + '"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="prog mono"><span>' + st.done + ' / ' + st.total + ' tugas</span><span>' + pct + '%</span></div>' +
+      (st.next ? '<div class="pnext"><span class="k">Berikutnya</span>' + esc(st.next.title) + (st.next.due ? ' <span class="muted">· ' + esc(dueLabel(st.next.due)) + '</span>' : '') + '</div>' : '') +
+      '<div class="pacts"><button class="btn sm" type="button" data-go="tasks" data-proj="' + esc(p.id) + '">Lihat tugas</button><button class="btn sm ghost" type="button" data-act="edit-project">Ubah</button></div>' +
+      '</article>';
+  }).join('');
+}
+
+function renderHabits(td) {
+  const hs = habArr();
+  const tickedToday = hs.filter(h => h.days && h.days[td]).length;
+  $('#hab-eyebrow').textContent = hs.length ? tickedToday + ' dari ' + hs.length + ' tercentang hari ini' : '14 hari terakhir';
+  const box = $('#hab-table');
+  if (!ready('habits')) { box.innerHTML = loadingRow; return; }
+  if (!hs.length) { box.innerHTML = '<div class="empty"><b>Belum ada kebiasaan.</b> Tambahkan di kolom di atas, mis. “Cek tren KPI pagi” atau “Olahraga 30 menit”, lalu centang setiap hari.</div>'; return; }
+  const days = []; for (let i = 13; i >= 0; i--) days.push(addD(td, -i));
+  let h = '<table class="htable"><thead><tr><th class="hn">Kebiasaan</th>';
+  days.forEach((d, i) => {
+    const dt = parse(d), cls = (i < 7 ? 'old ' : '') + (d === td ? 'today ' : '') + (dt.getDay() === 1 ? 'wk' : '');
+    h += '<th class="' + cls.trim() + '">' + HR[dt.getDay()].slice(0, 2) + '<br>' + dt.getDate() + '</th>';
+  });
+  h += '<th class="num">Streak</th><th class="num rate">30 hr</th></tr></thead><tbody>';
+  hs.forEach(hb => {
+    const st = streak(hb);
+    h += '<tr><td class="hn"><button type="button" data-act="edit-habit" data-hid="' + esc(hb.id) + '">' + esc(hb.name) + '</button>' + (hb.seed ? ' <span class="pill seed">contoh</span>' : '') + '</td>';
+    days.forEach((d, i) => {
+      const on = !!(hb.days && hb.days[d]), dt = parse(d), cls = (i < 7 ? 'old ' : '') + (d === td ? 'today ' : '') + (dt.getDay() === 1 ? 'wk' : '');
+      h += '<td class="' + cls.trim() + '"><button class="hcell' + (on ? ' on' : '') + '" type="button" data-act="hab-tick" data-hid="' + esc(hb.id) + '" data-date="' + d + '" aria-pressed="' + on + '" aria-label="' + esc(hb.name) + ', ' + esc(fmtD(d)) + '">' + CHECK + '</button></td>';
+    });
+    h += '<td class="num' + (st ? ' on' : '') + '">' + st + ' hr</td><td class="num rate">' + rate30(hb) + '%</td></tr>';
+  });
+  box.innerHTML = h + '</tbody></table>';
+}
+
+function renderFocus(td) {
+  const f = focusOn(td);
+  $('#focus-eyebrow').textContent = 'Hari ini ' + fmtMin(f.min) + ' · ' + f.n + ' sesi';
+  $('#focus-total').textContent = fmtMin(f.min);
+  const box = $('#focus-sessions');
+  if (!ready('focus')) box.innerHTML = loadingRow;
+  else box.innerHTML = f.n ? f.sessions.slice().sort((a, b) => String(a.at).localeCompare(String(b.at))).map(s => {
+    const t = new Date(s.at);
+    return '<div class="sess"><span class="at">' + (isNaN(t) ? '--:--' : pad(t.getHours()) + ':' + pad(t.getMinutes())) + '</span><span class="lb">' + esc(s.label || 'Fokus') + '</span><span class="mn">' + (Number(s.min) || 0) + ' mnt</span>' +
+      '<button class="xbtn" type="button" data-act="del-session" data-date="' + td + '" data-sid="' + esc(s.id) + '" aria-label="Hapus sesi">×</button></div>';
+  }).join('') : '<div class="empty">Belum ada sesi hari ini. Pilih tugas lalu tekan <b>Mulai</b>, atau catat manual di bawah.</div>';
+  const pts = last14(d => { const x = focusOn(d); return { v: x.min, title: fmtD(d) + ': ' + x.min + ' menit' }; });
+  $('#focus-chart').innerHTML = barChart(pts, 'Menit fokus per hari, 14 hari terakhir');
+  const tot = pts.reduce((a, p) => a + p.v, 0), active = pts.filter(p => p.v > 0).length;
+  $('#focus-chart-sum').innerHTML = '<span>Total <b>' + fmtMin(tot) + '</b></span><span>Hari aktif <b>' + active + '</b>/14</span>';
+  const opts = '<option value="">Tanpa tugas tertentu</option>' + tasksArr().filter(t => !isDone(t)).sort(taskSort)
+    .map(t => '<option value="' + esc(t.id) + '"' + (t.id === T.taskId ? ' selected' : '') + '>' + esc('T-' + pad3(t.no) + ' · ' + t.title) + '</option>').join('');
+  fillSelect($('#t-task'), opts);
+  if (T.taskId && $('#t-task').value !== T.taskId && document.activeElement !== $('#t-task')) $('#t-task').value = $$('option', $('#t-task')).some(o => o.value === T.taskId) ? T.taskId : '';
+  paintTimer();
+}
+
+/* ---------- review ---------- */
+let jDirty = false, jTimer = 0, jShownDate = '';
+function renderReview() {
+  const jd = ui.journalDate;
+  if ($('#j-date').value !== jd && document.activeElement !== $('#j-date')) $('#j-date').value = jd;
+  const j = S.journal[jd] || {};
+  const fields = ['capaian', 'kendala', 'rencana'];
+  if (jShownDate !== jd || !jDirty) {
+    fields.forEach(k => { const el = $('#j-' + k); if (document.activeElement !== el || jShownDate !== jd) el.value = j[k] || ''; });
+    jShownDate = jd;
+  }
+  if (!jDirty) $('#j-status').textContent = j.updated ? 'Tersimpan ' + timeStr(j.updated) : (ready('journal') ? 'Belum ada catatan' : 'Memuat…');
+  const ws = ui.reportWeek;
+  $('#r-week').textContent = 'W' + isoWeek(ws) + ' · ' + fmtRange(ws, addD(ws, 6));
+  const rep = buildReport(ws), rt = $('#r-text');
+  if (rt.value !== rep) rt.value = rep;
+  renderDataPanel();
+}
+function timeStr(iso) { const t = new Date(iso); if (isNaN(t)) return ''; const d = ymd(t); return (d === TODAY() ? '' : fmtD(d) + ' ') + pad(t.getHours()) + ':' + pad(t.getMinutes()); }
+function saveJournal() {
+  const jd = jShownDate || ui.journalDate;
+  const body = { date: jd, capaian: $('#j-capaian').value, kendala: $('#j-kendala').value, rencana: $('#j-rencana').value, updated: new Date().toISOString() };
+  jDirty = false;
+  const empty = !body.capaian.trim() && !body.kendala.trim() && !body.rencana.trim();
+  const p = empty ? (S.journal[jd] ? remove('journal', jd) : Promise.resolve(true)) : put('journal', jd, body);
+  Promise.resolve(p).then(ok => { if (ok) $('#j-status').textContent = empty ? 'Kosong' : 'Tersimpan ' + timeStr(body.updated); });
+}
+function buildReport(ws) {
+  const we = addD(ws, 6), td = TODAY(), ts = tasksArr();
+  const inW = s => s && s >= ws && s <= we;
+  const tag = t => { const p = S.projects[t.projectId]; return p ? '[' + projCode(p) + '] ' : ''; };
+  const done = ts.filter(t => isDone(t) && inW(doneDate(t))).sort((a, b) => doneDate(a).localeCompare(doneDate(b)));
+  const ongoing = ts.filter(t => !isDone(t) && (t.status === 'doing' || (isDate(t.due) && t.due <= we))).sort((a, b) => String(a.due || '9999').localeCompare(String(b.due || '9999')) || taskSort(a, b));
+  const nws = addD(ws, 7), nwe = addD(ws, 13);
+  const plan = ts.filter(t => !isDone(t) && isDate(t.due) && t.due >= nws && t.due <= nwe).sort((a, b) => a.due.localeCompare(b.due));
+  const js = Object.keys(S.journal).map(k => S.journal[k]).filter(j => inW(j.date)).sort((a, b) => a.date.localeCompare(b.date));
+  let fm = 0, fn = 0; for (let i = 0; i < 7; i++) { const x = focusOn(addD(ws, i)); fm += x.min; fn += x.n; }
+  const lines = s => String(s || '').split('\n').map(x => x.trim().replace(/^[-•*]\s*/, '')).filter(Boolean);
+  const L = [];
+  L.push('LAPORAN MINGGUAN · W' + isoWeek(ws) + ' (' + fmtRange(ws, we) + ')');
+  L.push('');
+  L.push('A. Selesai (' + done.length + ')');
+  if (done.length) done.forEach(t => L.push('- ' + tag(t) + t.title + ' (' + fmtD(doneDate(t)) + ')')); else L.push('- Belum ada tugas yang ditandai selesai.');
+  L.push('');
+  L.push('B. Sedang berjalan (' + ongoing.length + ')');
+  if (ongoing.length) ongoing.forEach(t => L.push('- ' + tag(t) + t.title + (t.due ? ' · tenggat ' + fmtD(t.due) + (t.due < td ? ' (terlambat)' : '') : '') + (t.status === 'doing' ? ' · dikerjakan' : ''))); else L.push('- Tidak ada.');
+  L.push('');
+  L.push('C. Kendala');
+  const ken = []; js.forEach(j => lines(j.kendala).forEach(x => ken.push('- ' + fmtD(j.date) + ': ' + x)));
+  if (ken.length) ken.forEach(x => L.push(x)); else L.push('- Tidak ada kendala yang dicatat di jurnal.');
+  L.push('');
+  L.push('D. Rencana minggu depan');
+  plan.forEach(t => L.push('- ' + tag(t) + t.title + ' · ' + HR[parse(t.due).getDay()] + ' ' + fmtD(t.due)));
+  const lastJ = js.slice().reverse().find(j => lines(j.rencana).length);
+  if (lastJ) lines(lastJ.rencana).forEach(x => { if (!plan.some(t => t.title === x)) L.push('- ' + x); });
+  if (!plan.length && !lastJ) L.push('- Belum ada tugas bertenggat minggu depan.');
+  L.push('');
+  L.push('E. Status proyek');
+  const ps = projArr().filter(p => p.status !== 'selesai').sort((a, b) => PORDER[a.status] - PORDER[b.status] || String(a.name).localeCompare(String(b.name)));
+  if (ps.length) ps.forEach(p => { const st = projStats(p.id); L.push('- ' + (p.code ? '[' + p.code + '] ' : '') + p.name + ' — ' + (PSTAT[p.status] || p.status) + ' · ' + st.done + '/' + st.total + ' tugas' + (isDate(p.target) ? ' · target ' + fmtD(p.target, true) : '')); });
+  else L.push('- Tidak ada proyek aktif.');
+  L.push('');
+  L.push('F. Waktu fokus tercatat: ' + fmtMin(fm) + ' (' + fn + ' sesi)');
+  return L.join('\n');
+}
+let dataPanelHtml = '';
+function renderDataPanel() {
+  const seeds = tasksArr().filter(t => t.seed).length + habArr().filter(h => h.seed).length;
+  const canDl = !!store.downloads || !IN_CLAUDE;
+  const desc = {
+    db: 'Data tersimpan di akun Claude Anda dan tersinkron di semua perangkat yang membuka logbook ini. Hanya Anda (dan editor yang Anda undang) yang bisa melihatnya.',
+    github: 'Data tersimpan di perangkat ini dan disinkron ke repo GitHub privat Anda, jadi sama di setiap perangkat yang terhubung.',
+    local: IN_CLAUDE ? 'Data hanya tersimpan di browser ini.' : 'Data hanya tersimpan di perangkat ini. Hubungkan GitHub di bawah agar tersinkron.',
+    setup: 'Data baru tersimpan di perangkat ini. Hubungkan GitHub di bawah agar tersinkron.',
+    loading: 'Menyambungkan penyimpanan…'
+  }[store.mode] || '';
+  let h = '<p>' + desc + '</p>';
+  h += '<div class="row-btns">' + (canDl ? '<button class="btn sm" type="button" data-act="export-csv">Unduh tugas (CSV)</button><button class="btn sm" type="button" data-act="export-json">Unduh cadangan (JSON)</button>' : '<span class="muted">Unduhan tidak tersedia di tampilan ini.</span>') +
+    (store.readOnly || store.mode === 'loading' ? '' : '<label class="btn sm filebtn">Impor cadangan (JSON)<input type="file" id="imp-file" accept=".json,application/json"></label>') + '</div>';
+  if (seeds) {
+    h += '<p>Ada ' + seeds + ' isian awal bertanda <span class="pill seed">usulan</span>/<span class="pill seed">contoh</span>. Tanda hilang otomatis saat item Anda ubah atau centang.</p>';
+    h += ui.seedConfirm
+      ? '<div class="confirm">Hapus ' + seeds + ' item yang masih bertanda? <button class="btn sm danger" type="button" data-act="seed-del">Ya, hapus</button><button class="btn sm" type="button" data-act="seed-cancel">Batal</button></div>'
+      : '<div class="row-btns"><button class="btn sm ghost" type="button" data-act="seed-ask">Hapus isian awal yang belum dipakai</button></div>';
+  }
+  if (h !== dataPanelHtml) { dataPanelHtml = h; $('#data-panel').innerHTML = h; }
+  renderGhBox();
+}
+
+/* ================= focus timer ================= */
+const PRESETS = { 25: 5, 50: 10, 90: 15 };
+const T = Object.assign({ preset: 25, phase: 'fokus', running: false, endsAt: 0, remaining: 25 * 60000, taskId: '' }, LS.get('logbook-timer') || {});
+if (!PRESETS[T.preset]) T.preset = 25;
+const saveT = () => LS.set('logbook-timer', T);
+const phaseDur = () => (T.phase === 'fokus' ? T.preset : PRESETS[T.preset]) * 60000;
+const RC = 2 * Math.PI * 104;
+(function drawTicks() {
+  let g = '';
+  for (let i = 0; i < 60; i++) {
+    const a = i / 60 * 2 * Math.PI - Math.PI / 2, maj = i % 5 === 0, r1 = maj ? 114 : 117, r2 = 123;
+    g += '<line class="tk' + (maj ? ' maj' : '') + '" x1="' + (130 + r1 * Math.cos(a)).toFixed(2) + '" y1="' + (130 + r1 * Math.sin(a)).toFixed(2) + '" x2="' + (130 + r2 * Math.cos(a)).toFixed(2) + '" y2="' + (130 + r2 * Math.sin(a)).toFixed(2) + '"/>';
+  }
+  $('#ticks').innerHTML = g;
+  $('#ring').setAttribute('stroke-dasharray', RC.toFixed(2));
+})();
+function remainingMs() { return T.running ? Math.max(0, T.endsAt - Date.now()) : T.remaining; }
+function paintTimer() {
+  const rem = remainingMs(), dur = phaseDur();
+  const s = Math.ceil(rem / 1000);
+  $('#t-clock').textContent = pad(Math.floor(s / 60)) + ':' + pad(s % 60);
+  $('#ring').setAttribute('stroke-dashoffset', (RC * (rem / dur)).toFixed(2));
+  $('#dial').classList.toggle('rest', T.phase !== 'fokus');
+  $('#t-phase').textContent = T.phase === 'fokus' ? 'FOKUS · ' + T.preset + ' MNT' : 'ISTIRAHAT · ' + PRESETS[T.preset] + ' MNT';
+  const task = S.tasks[T.taskId];
+  $('#t-sub').textContent = T.running ? (task ? 'T-' + pad3(task.no) + ' berjalan' : 'Berjalan') : (rem < dur ? 'Dijeda' : (T.phase === 'fokus' ? 'Siap mulai' : 'Waktunya istirahat'));
+  $('#t-start').textContent = T.running ? 'Jeda' : (rem < dur ? 'Lanjut' : 'Mulai');
+  $('#t-finish').textContent = T.phase === 'fokus' ? 'Selesai & catat' : 'Lewati istirahat';
+  $$('#presets button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.preset) === T.preset)));
+}
+let actx = null;
+function ensureAudio() { try { const AC = window.AudioContext || window.webkitAudioContext; if (!actx && AC) actx = new AC(); if (actx && actx.state === 'suspended') actx.resume(); } catch (e) {} }
+function beep() {
+  if (!actx) return;
+  try {
+    const t0 = actx.currentTime;
+    [0, 0.32, 0.64].forEach(dt => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine'; o.frequency.value = 880;
+      g.gain.setValueAtTime(0.0001, t0 + dt); g.gain.exponentialRampToValueAtTime(0.22, t0 + dt + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dt + 0.24);
+      o.connect(g); g.connect(actx.destination); o.start(t0 + dt); o.stop(t0 + dt + 0.28);
+    });
+  } catch (e) {}
+}
+function sessionLabel() { const t = S.tasks[T.taskId]; return t ? 'T-' + pad3(t.no) + ' · ' + t.title : 'Fokus'; }
+function logFocus(min, label, taskId, at) {
+  at = at || new Date().toISOString();
+  const date = ymd(new Date(at));
+  const cur = S.focus[date];
+  const sessions = cur && Array.isArray(cur.sessions) ? clean(cur.sessions) : [];
+  sessions.push({ id: uid(), at, min: Math.round(min), label: label || 'Fokus', taskId: taskId || '' });
+  return put('focus', date, { date, sessions });
+}
+function switchPhase() { T.phase = T.phase === 'fokus' ? 'istirahat' : 'fokus'; T.running = false; T.remaining = phaseDur(); saveT(); }
+function onComplete() {
+  const wasFocus = T.phase === 'fokus';
+  const at = new Date(Math.min(Date.now(), T.endsAt || Date.now())).toISOString();
+  beep();
+  if (wasFocus) { logFocus(T.preset, sessionLabel(), T.taskId, at); toast(T.preset + ' menit fokus dicatat. Waktunya istirahat.'); }
+  else toast('Istirahat selesai. Siap sesi berikutnya.');
+  switchPhase(); paintTimer();
+}
+function tick() {
+  if (T.running && Date.now() >= T.endsAt) {
+    if (store.mode === 'loading') return;
+    onComplete();
+  }
+  if (ui.view === 'focus') paintTimer();
+}
+setInterval(tick, 500);
+$('#t-start').addEventListener('click', () => {
+  ensureAudio();
+  if (T.running) { T.remaining = Math.max(0, T.endsAt - Date.now()); T.running = false; }
+  else { if (T.remaining <= 0) T.remaining = phaseDur(); T.running = true; T.endsAt = Date.now() + T.remaining; }
+  saveT(); paintTimer();
+});
+$('#t-reset').addEventListener('click', () => { T.running = false; T.remaining = phaseDur(); saveT(); paintTimer(); });
+$('#t-finish').addEventListener('click', () => {
+  if (T.phase === 'fokus') {
+    const elapsed = phaseDur() - remainingMs(), min = Math.round(elapsed / 60000);
+    if (min >= 1) { logFocus(min, sessionLabel(), T.taskId); toast(min + ' menit fokus dicatat.'); }
+    else toast('Sesi kurang dari 1 menit, tidak dicatat.');
+  }
+  switchPhase(); paintTimer();
+});
+$('#presets').addEventListener('click', e => {
+  const b = e.target.closest('[data-preset]'); if (!b) return;
+  if (T.running) { toast('Jeda atau reset dulu sebelum mengganti durasi.'); return; }
+  T.preset = Number(b.dataset.preset); T.remaining = phaseDur(); saveT(); paintTimer();
+});
+$('#t-task').addEventListener('change', e => { T.taskId = e.target.value; saveT(); paintTimer(); });
+
+/* ================= sheet (edit drawers) ================= */
+let lastFocus = null;
+function openSheet(html) {
+  lastFocus = document.activeElement;
+  $('#sheet-body').innerHTML = html; $('#sheet').hidden = false; document.body.classList.add('locked');
+  setTimeout(() => { const f = $('#sheet-body [data-autofocus]'); if (f) f.focus(); }, 30);
+}
+function closeSheet() { $('#sheet').hidden = true; $('#sheet-body').innerHTML = ''; document.body.classList.remove('locked'); if (lastFocus && lastFocus.focus) try { lastFocus.focus(); } catch (e) {} }
+const delZone = what => '<div class="delzone"><button class="btn sm ghost" type="button" data-act="ask-del" style="color:var(--crit)">Hapus ' + what + '</button></div>';
+function taskSheet(id) {
+  const t = S.tasks[id]; if (!t) return;
+  const pri = t.priority || 2;
+  openSheet('<form class="sform" id="f-task" data-id="' + esc(id) + '">' +
+    '<div class="sh"><span class="mono tid">T-' + pad3(t.no) + '</span><h2>Ubah tugas</h2><button class="x" type="button" data-act="close" aria-label="Tutup">×</button></div>' +
+    '<label class="field"><span>Judul</span><input class="in" name="title" required data-autofocus value="' + esc(t.title) + '"></label>' +
+    '<label class="field"><span>Catatan</span><textarea class="in" name="notes" rows="5" placeholder="Detail, link dokumen, nama PIC…">' + esc(t.notes || '') + '</textarea></label>' +
+    '<label class="field"><span>Proyek</span><select class="in" name="projectId">' + projectOptions(t.projectId || '', false, 'Tanpa proyek') + '</select></label>' +
+    '<div class="field"><span>Prioritas</span><div class="seg-pri">' + [1, 2, 3].map(n => '<label><input type="radio" name="priority" value="' + n + '"' + (n === pri ? ' checked' : '') + '>' + ['', 'P1 Penting', 'P2 Normal', 'P3 Rendah'][n] + '</label>').join('') + '</div></div>' +
+    '<div class="frow"><label class="field"><span>Tenggat</span><input class="in" type="date" name="due" value="' + esc(t.due || '') + '"></label>' +
+    '<label class="field"><span>Status</span><select class="in" name="status">' + [['todo', 'Belum mulai'], ['doing', 'Dikerjakan'], ['done', 'Selesai']].map(([v, l]) => '<option value="' + v + '"' + (t.status === v ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></label></div>' +
+    '<div class="qd"><button type="button" data-qd="0">Hari ini</button><button type="button" data-qd="1">Besok</button><button type="button" data-qd="mon">Senin depan</button><button type="button" data-qd="fri">Jumat ini</button><button type="button" data-qd="clear">Tanpa tenggat</button></div>' +
+    '<div class="smeta">Dibuat ' + esc(t.created ? fmtD(ymd(new Date(t.created)), true) : '—') + (t.doneAt ? ' · Selesai ' + esc(fmtD(doneDate(t), true)) : '') + (t.seed ? ' · isian awal (usulan)' : '') + '</div>' +
+    '<div class="sfoot">' + delZone('tugas') + '<div class="r"><button class="btn" type="button" data-act="close">Batal</button><button class="btn primary" type="submit">Simpan</button></div></div></form>');
+}
+function projectSheet(id) {
+  const p = id ? S.projects[id] : { code: '', name: '', area: 'Kantor', status: 'aktif', target: '', notes: '' };
+  if (!p) return;
+  openSheet('<form class="sform" id="f-proj" data-id="' + esc(id || '') + '">' +
+    '<div class="sh"><h2>' + (id ? 'Ubah proyek' : 'Proyek baru') + '</h2><button class="x" type="button" data-act="close" aria-label="Tutup">×</button></div>' +
+    '<div class="frow"><label class="field"><span>Kode singkat</span><input class="in mono" name="code" maxlength="14" placeholder="mis. FGD-MB4" value="' + esc(p.code || '') + '"></label>' +
+    '<label class="field"><span>Area</span><select class="in" name="area">' + AREAS.map(a => '<option' + ((p.area || 'Kantor') === a ? ' selected' : '') + '>' + a + '</option>').join('') + '</select></label></div>' +
+    '<label class="field"><span>Nama proyek</span><input class="in" name="name" required data-autofocus placeholder="mis. Shutdown & Overhaul MB#4" value="' + esc(p.name || '') + '"></label>' +
+    '<div class="frow"><label class="field"><span>Status</span><select class="in" name="status">' + Object.keys(PSTAT).map(s => '<option value="' + s + '"' + (p.status === s ? ' selected' : '') + '>' + PSTAT[s] + '</option>').join('') + '</select></label>' +
+    '<label class="field"><span>Target selesai</span><input class="in" type="date" name="target" value="' + esc(p.target || '') + '"></label></div>' +
+    '<label class="field"><span>Catatan</span><textarea class="in" name="notes" rows="5" placeholder="Nilai AFE, PIC, status approval, link dokumen…">' + esc(p.notes || '') + '</textarea></label>' +
+    '<div class="sfoot">' + (id ? delZone('proyek') : '<span></span>') + '<div class="r"><button class="btn" type="button" data-act="close">Batal</button><button class="btn primary" type="submit">' + (id ? 'Simpan' : 'Buat proyek') + '</button></div></div></form>');
+}
+function habitSheet(id) {
+  const h = S.habits[id]; if (!h) return;
+  openSheet('<form class="sform" id="f-hab" data-id="' + esc(id) + '">' +
+    '<div class="sh"><h2>Ubah kebiasaan</h2><button class="x" type="button" data-act="close" aria-label="Tutup">×</button></div>' +
+    '<label class="field"><span>Nama</span><input class="in" name="name" required data-autofocus value="' + esc(h.name) + '"></label>' +
+    '<div class="smeta">Streak ' + streak(h) + ' hari · 30 hari terakhir ' + rate30(h) + '% · ' + Object.keys(h.days || {}).length + ' hari tercentang</div>' +
+    '<div class="sfoot">' + delZone('kebiasaan') + '<div class="r"><button class="btn" type="button" data-act="close">Batal</button><button class="btn primary" type="submit">Simpan</button></div></div></form>');
+}
+
+/* ================= actions ================= */
+function addTask(title, projectId, priority, due) {
+  title = (title || '').trim(); if (!title) return false;
+  if (!canWrite()) return false;
+  const no = nextNo(), id = uid();
+  put('tasks', id, { no, title, notes: '', projectId: projectId || '', priority: Number(priority) || 2, due: isDate(due) ? due : '', status: 'todo', created: new Date().toISOString(), doneAt: '' });
+  toast('T-' + pad3(no) + ' ditambahkan.');
+  return true;
+}
+function toggleTask(id) {
+  const t = S.tasks[id]; if (!t) return;
+  const b = clean(t); delete b.seed;
+  if (b.status === 'done') { b.status = 'todo'; b.doneAt = ''; } else { b.status = 'done'; b.doneAt = new Date().toISOString(); }
+  put('tasks', id, b);
+}
+function tickHabit(hid, date) {
+  const h = S.habits[hid]; if (!h || date > TODAY()) return;
+  const b = clean(h); delete b.seed; b.days = b.days || {};
+  if (b.days[date]) delete b.days[date]; else b.days[date] = 1;
+  put('habits', hid, b);
+}
+function show(v, proj) {
+  if (!HASH[v]) v = 'today';
+  ui.view = v;
+  if (v === 'tasks' && proj !== undefined) { ui.taskProject = proj; ui.taskFilter = 'aktif'; const s = $('#tf-proj'); if ($$('option', s).some(o => o.value === proj)) s.value = proj; }
+  $$('.view').forEach(s => { s.hidden = s.dataset.view !== v; });
+  $$('.nav').forEach(b => b.setAttribute('aria-current', b.dataset.go === v ? 'page' : 'false'));
+  try { history.replaceState(null, '', '#' + HASH[v]); } catch (e) {}
+  LS.set('logbook-ui', { view: v });
+  window.scrollTo(0, 0);
+  render();
+}
+function blobDownload(filename, data, type) {
+  try {
+    const url = URL.createObjectURL(new Blob([data], { type }));
+    const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
+    toast('File diunduh: ' + filename);
+  } catch (e) { toast('Unduhan gagal.'); }
+}
+async function exportData(kind) {
+  const dl = store.downloads;
+  if (!dl && IN_CLAUDE) { toast('Unduhan tidak tersedia di tampilan ini.'); return; }
+  const stamp = TODAY();
+  let filename, data, type;
+  if (kind === 'json') {
+    filename = 'logbook-cadangan-' + stamp + '.json'; type = 'application/json';
+    data = JSON.stringify({ app: 'logbook', exported: new Date().toISOString(), tasks: S.tasks, projects: S.projects, habits: S.habits, focus: S.focus, journal: S.journal }, null, 2);
+  } else {
+    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const rows = [['No', 'Judul', 'Proyek', 'Prioritas', 'Status', 'Tenggat', 'Selesai', 'Catatan']];
+    tasksArr().sort((a, b) => (a.no || 0) - (b.no || 0)).forEach(t => rows.push(['T-' + pad3(t.no), t.title, projCode(S.projects[t.projectId]), PR[t.priority || 2], { todo: 'Belum mulai', doing: 'Dikerjakan', done: 'Selesai' }[t.status] || t.status, t.due || '', doneDate(t), t.notes || '']));
+    filename = 'logbook-tugas-' + stamp + '.csv'; type = 'text/csv;charset=utf-8';
+    data = '﻿' + rows.map(r => r.map(q).join(',')).join('\r\n');
+  }
+  if (!dl) { blobDownload(filename, data, type); return; }
+  try { const r = await dl.save({ filename, data }); if (r && r.status === 'saved') toast('File disimpan.'); }
+  catch (e) { const c = e && e.code; if (c === 'declined') return; if (c === 'rate_limited') toast('Masih ada dialog unduhan yang terbuka.'); else toast('Unduhan gagal.'); }
+}
+async function importData(file) {
+  if (!file || !canWrite()) return;
+  let obj;
+  try { obj = JSON.parse(await file.text()); } catch (e) { toast('File bukan JSON yang valid.'); return; }
+  if (!obj || typeof obj !== 'object' || !COLS.some(c => obj[c] && typeof obj[c] === 'object')) { toast('File ini bukan cadangan logbook.'); return; }
+  let n = 0;
+  for (const col of COLS) {
+    const src = obj[col]; if (!src || typeof src !== 'object') continue;
+    for (const id of Object.keys(src)) {
+      const doc = src[id];
+      if (!doc || typeof doc !== 'object' || Array.isArray(doc) || !/^[A-Za-z0-9_\-.~:@+]{1,200}$/.test(id)) continue;
+      const body = clean(doc); delete body._u;
+      if (store.mode === 'db') { await put(col, id, body); }
+      else { body._u = Date.now(); S[col] = Object.assign({}, S[col], { [id]: body }); if (TOMB[col]) delete TOMB[col][id]; }
+      n++;
+    }
+  }
+  if (store.mode !== 'db') { saveLocal(); if (store.mode === 'github') schedulePush(); }
+  schedule();
+  toast(n + ' item diimpor.');
+}
+async function deleteSeeds() {
+  const ts = tasksArr().filter(t => t.seed), hs = habArr().filter(h => h.seed);
+  ui.seedConfirm = false;
+  for (const t of ts) await remove('tasks', t.id);
+  for (const h of hs) await remove('habits', h.id);
+  toast((ts.length + hs.length) + ' isian awal dihapus.');
+}
+async function copyReport() {
+  const ta = $('#r-text'), txt = ta.value;
+  try { await navigator.clipboard.writeText(txt); toast('Laporan disalin.'); }
+  catch (e) { ta.focus(); ta.select(); toast('Teks sudah terpilih. Tekan Ctrl+C / Salin.'); }
+}
+
+document.addEventListener('click', e => {
+  const go = e.target.closest('[data-go]');
+  if (go) { e.preventDefault(); show(go.dataset.go, go.dataset.proj); return; }
+  const qd = e.target.closest('[data-qd]');
+  if (qd) {
+    const inp = $('#f-task [name="due"]'); if (!inp) return; const td = TODAY(), k = qd.dataset.qd, dow = parse(td).getDay();
+    inp.value = k === 'clear' ? '' : k === 'mon' ? addD(td, ((8 - dow) % 7) || 7) : k === 'fri' ? addD(td, (5 - dow + 7) % 7) : addD(td, Number(k));
+    return;
+  }
+  const jdb = e.target.closest('[data-jd]');
+  if (jdb) { if (jDirty) { clearTimeout(jTimer); saveJournal(); } ui.journalDate = addD(ui.journalDate, Number(jdb.dataset.jd)); jShownDate = ''; render(); return; }
+  const rw = e.target.closest('[data-rw]');
+  if (rw) { ui.reportWeek = addD(ui.reportWeek, 7 * Number(rw.dataset.rw)); render(); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act, row = a.closest('[data-id]'), id = row && row.dataset.id;
+  switch (act) {
+    case 'toggle': toggleTask(id); break;
+    case 'edit': taskSheet(id); break;
+    case 'close': closeSheet(); break;
+    case 'ask-del': {
+      const z = a.closest('.delzone');
+      z.innerHTML = '<div class="confirm">Yakin hapus? <button class="btn sm danger" type="button" data-act="do-del">Ya, hapus</button><button class="btn sm" type="button" data-act="cancel-del">Tidak</button></div>';
+      break;
+    }
+    case 'cancel-del': { const z = a.closest('.delzone'); const f = a.closest('form'); const what = f.id === 'f-task' ? 'tugas' : f.id === 'f-proj' ? 'proyek' : 'kebiasaan'; z.outerHTML = delZone(what); break; }
+    case 'do-del': {
+      const f = a.closest('form'), fid = f.dataset.id;
+      if (f.id === 'f-task') { remove('tasks', fid); toast('Tugas dihapus.'); }
+      else if (f.id === 'f-proj') { remove('projects', fid); toast('Proyek dihapus. Tugasnya tetap ada tanpa proyek.'); }
+      else if (f.id === 'f-hab') { remove('habits', fid); toast('Kebiasaan dihapus.'); }
+      closeSheet(); break;
+    }
+    case 'new-project': projectSheet(''); break;
+    case 'edit-project': projectSheet(a.closest('[data-pid]').dataset.pid); break;
+    case 'edit-habit': habitSheet(a.dataset.hid); break;
+    case 'hab-tick': tickHabit(a.dataset.hid, a.dataset.date); break;
+    case 'filter': ui.taskFilter = a.dataset.f; render(); break;
+    case 'area': ui.projArea = a.dataset.area; render(); break;
+    case 'del-session': {
+      const date = a.dataset.date, cur = S.focus[date]; if (!cur) break;
+      const ss = clean(cur.sessions || []).filter(s => s.id !== a.dataset.sid);
+      if (ss.length) put('focus', date, { date, sessions: ss }); else remove('focus', date);
+      break;
+    }
+    case 'j-fill': {
+      const d = ui.journalDate, done = tasksArr().filter(t => isDone(t) && doneDate(t) === d);
+      if (!done.length) { toast('Belum ada tugas yang selesai pada ' + fmtD(d) + '.'); break; }
+      const el = $('#j-capaian'); const cur = el.value;
+      const add = done.map(t => { const p = S.projects[t.projectId]; return '- ' + (p ? '[' + projCode(p) + '] ' : '') + t.title; }).filter(l => !cur.includes(l));
+      if (!add.length) { toast('Semua tugas selesai sudah ada di capaian.'); break; }
+      el.value = (cur.trim() ? cur.replace(/\s+$/, '') + '\n' : '') + add.join('\n');
+      jDirty = true; saveJournal(); break;
+    }
+    case 'r-copy': copyReport(); break;
+    case 'export-csv': exportData('csv'); break;
+    case 'export-json': exportData('json'); break;
+    case 'seed-ask': ui.seedConfirm = true; renderDataPanel(); break;
+    case 'seed-cancel': ui.seedConfirm = false; renderDataPanel(); break;
+    case 'seed-del': deleteSeeds(); break;
+    case 'goto-gh': show('review'); setTimeout(() => { const el = $('#gh-box'); if (el) el.scrollIntoView({ block: 'center' }); const t = $('#gh-token'); if (t) t.focus(); }, 60); break;
+    case 'use-local': LS.set('logbook-mode', 'local'); store.mode = 'local'; ghBoxKey = ''; setStatus(); render(); toast('Data disimpan di perangkat ini saja.'); break;
+    case 'gh-sync': ghSync(); break;
+    case 'gh-disc-ask': ghAskDisc = true; renderGhBox(); break;
+    case 'gh-disc-cancel': ghAskDisc = false; renderGhBox(); break;
+    case 'gh-disc': ghAskDisc = false; ghDisconnect(); break;
+  }
+});
+
+document.addEventListener('submit', e => {
+  const f = e.target; e.preventDefault();
+  if (f.id === 'gh-form') {
+    ghConnect($('#gh-token').value, $('#gh-repo').value, $('#gh-owner').value);
+  } else if (f.id === 'qa') {
+    if (addTask($('#qa-title').value, $('#qa-proj').value, $('#qa-pri').value, $('#qa-due').value)) { $('#qa-title').value = ''; $('#qa-title').focus(); }
+  } else if (f.id === 'qa-today') {
+    if (addTask($('#qt-title').value, '', 2, TODAY())) { $('#qt-title').value = ''; }
+  } else if (f.id === 'hab-add') {
+    const name = $('#hab-name').value.trim(); if (!name || !canWrite()) return;
+    const order = habArr().reduce((m, h) => Math.max(m, h.order || 0), 0) + 1;
+    put('habits', uid(), { name, order, created: new Date().toISOString(), days: {} });
+    $('#hab-name').value = ''; toast('Kebiasaan ditambahkan.');
+  } else if (f.id === 'focus-manual') {
+    const m = Math.round(Number($('#fm-min').value));
+    if (!(m >= 1 && m <= 720)) { toast('Isi menit antara 1 dan 720.'); return; }
+    logFocus(m, $('#fm-label').value.trim() || 'Catatan manual', '');
+    $('#fm-min').value = ''; $('#fm-label').value = ''; toast(m + ' menit dicatat.');
+  } else if (f.id === 'f-task') {
+    const id = f.dataset.id, t = S.tasks[id]; if (!t) return closeSheet();
+    const fd = new FormData(f), b = clean(t); delete b.seed;
+    b.title = String(fd.get('title') || '').trim() || t.title;
+    b.notes = String(fd.get('notes') || '');
+    b.projectId = String(fd.get('projectId') || '');
+    b.priority = Number(fd.get('priority')) || 2;
+    const due = String(fd.get('due') || ''); b.due = isDate(due) ? due : '';
+    const st = String(fd.get('status') || 'todo');
+    if (st === 'done' && t.status !== 'done') b.doneAt = new Date().toISOString();
+    if (st !== 'done') b.doneAt = '';
+    b.status = st;
+    put('tasks', id, b); closeSheet(); toast('Tugas disimpan.');
+  } else if (f.id === 'f-proj') {
+    const id = f.dataset.id || uid(), fd = new FormData(f), prev = S.projects[id] || {};
+    const name = String(fd.get('name') || '').trim(); if (!name) return;
+    const target = String(fd.get('target') || '');
+    put('projects', id, Object.assign({}, clean(prev), {
+      code: String(fd.get('code') || '').trim().toUpperCase(), name, area: String(fd.get('area') || 'Kantor'),
+      status: String(fd.get('status') || 'aktif'), target: isDate(target) ? target : '', notes: String(fd.get('notes') || ''),
+      created: prev.created || new Date().toISOString()
+    }));
+    closeSheet(); toast(f.dataset.id ? 'Proyek disimpan.' : 'Proyek dibuat.');
+  } else if (f.id === 'f-hab') {
+    const id = f.dataset.id, h = S.habits[id]; if (!h) return closeSheet();
+    const b = clean(h); delete b.seed; b.name = String(new FormData(f).get('name') || '').trim() || h.name;
+    put('habits', id, b); closeSheet();
+  }
+});
+
+$('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
+document.addEventListener('change', e => {
+  if (e.target && e.target.id === 'imp-file') { const fl = e.target.files && e.target.files[0]; importData(fl); e.target.value = ''; }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet').hidden) closeSheet(); });
+$('#tf-proj').addEventListener('change', e => { ui.taskProject = e.target.value; render(); });
+$('#tf-q').addEventListener('input', e => { ui.taskQuery = e.target.value; render(); });
+$('#pf-done').addEventListener('change', e => { ui.projShowDone = e.target.checked; render(); });
+$('#j-date').addEventListener('change', e => { if (!isDate(e.target.value)) return; if (jDirty) { clearTimeout(jTimer); saveJournal(); } ui.journalDate = e.target.value; jShownDate = ''; render(); });
+['capaian', 'kendala', 'rencana'].forEach(k => $('#j-' + k).addEventListener('input', () => {
+  jDirty = true; $('#j-status').textContent = 'Mengetik…'; clearTimeout(jTimer); jTimer = setTimeout(saveJournal, 900);
+}));
+window.addEventListener('beforeunload', () => { if (jDirty) saveJournal(); });
+
+let toastTimer = 0;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2800); }
+
+/* clock-driven refresh (date rollover, shift label, overdue) */
+let lastDay = TODAY();
+setInterval(() => {
+  const d = TODAY();
+  if (d !== lastDay) { if (ui.journalDate === lastDay && !jDirty) { ui.journalDate = d; jShownDate = ''; } lastDay = d; }
+  schedule();
+}, 60000);
+
+/* boot */
+const fromHash = Object.keys(HASH).find(k => HASH[k] === (location.hash || '').slice(1));
+const saved = LS.get('logbook-ui');
+show(fromHash || (saved && saved.view) || 'today');
+setStatus();
+init();
+})();
+</script>
+</body>
+</html>
